@@ -1,0 +1,17 @@
+<?php
+
+namespace App\Http\Controllers\Student;
+
+use App\Http\Controllers\Controller;
+use Illuminate\View\View;
+
+class DashboardController extends Controller
+{
+    /**
+     * Display the Student dashboard.
+     */
+    public function index(): View
+    {
+        return view('student.dashboard');
+    }
+}
