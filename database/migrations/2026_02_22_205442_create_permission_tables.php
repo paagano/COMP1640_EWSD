@@ -4,11 +4,12 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+// This migration creates the necessary tables for managing permissions and roles in the application. 
+// It creates tables for permissions, roles, and the relationships between models, permissions, and roles. 
+// The migration also includes a method to reverse these changes by dropping the created tables.
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
+    // Run the migrations.
     public function up(): void
     {
         $teams = config('permission.teams');
@@ -116,9 +117,7 @@ return new class extends Migration
             ->forget(config('permission.cache.key'));
     }
 
-    /**
-     * Reverse the migrations.
-     */
+    // Reverse the migrations.
     public function down(): void
     {
         $tableNames = config('permission.table_names');

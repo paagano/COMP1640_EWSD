@@ -14,41 +14,25 @@ class Faculty extends Model
         'guest_password'
     ];
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Users
-    |--------------------------------------------------------------------------
-    | A faculty can have many users (students, coordinators etc.)
-    */
-
+    // Users
     public function users()
     {
         return $this->hasMany(User::class);
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Contributions
-    |--------------------------------------------------------------------------
-    | A faculty can have many contributions submitted by students
-    */
-
+    // Contributions
+    // A faculty can have many contributions submitted by students belonging to that faculty. 
+    // This relationship allows us to easily retrieve all contributions associated with a specific faculty, which can be useful for coordinators and managers when reviewing submissions and generating reports based on faculties.
     public function contributions()
     {
         return $this->hasMany(Contribution::class);
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Faculty Coordinator
-    |--------------------------------------------------------------------------
-    | Each faculty has one Marketing Coordinator.
-    | We filter the faculty users by the role "Marketing Coordinator".
-    */
-
+    // Faculty Coordinator
+    // Each faculty has one Marketing Coordinator.
+    // We filter the faculty users by the role "Marketing Coordinator".
     public function coordinator()
     {
         return $this->hasOne(User::class, 'faculty_id')

@@ -4,6 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+// This model represents a comment made by a coordinator on a contribution. 
+// Each comment is associated with a specific contribution and a coordinator (user). 
+// The model includes fields for the comment text, the timestamp of when the comment was made, and relationships to both the contribution and the coordinator. 
+// This allows for easy retrieval of comments related to a contribution and the coordinator who made the comment, facilitating communication and feedback within the system.
 class Comment extends Model
 {
     protected $fillable = [

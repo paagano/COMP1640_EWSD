@@ -39,12 +39,8 @@ class SendCoordinatorReminders extends Command
 
         foreach ($contributions as $contribution) {
 
-            /*
-            |--------------------------------------------------------------------------
-            | Calculate pending time
-            |--------------------------------------------------------------------------
-            */
-
+           
+            // Calculate pending time
             if ($this->timeUnit === 'minutes') {
                 $pendingTime = Carbon::parse($contribution->created_at)->diffInMinutes(now());
             } else {
@@ -59,12 +55,8 @@ class SendCoordinatorReminders extends Command
 
             $type = null;
 
-            /*
-            |--------------------------------------------------------------------------
-            | SLA Logic
-            |--------------------------------------------------------------------------
-            */
-
+          
+            // SLA Logic
             if ($pendingTime == $this->friendlyReminder) {
                 $type = 'friendly';
             }
@@ -79,12 +71,8 @@ class SendCoordinatorReminders extends Command
 
             if ($type) {
 
-                /*
-                |--------------------------------------------------------------------------
-                | Send reminder to Faculty Coordinator
-                |--------------------------------------------------------------------------
-                */
-
+               
+                // Send reminder to Faculty Coordinator
                 Mail::to($coordinator->email)
                     ->send(new \App\Mail\CoordinatorReminderMail(
                         $contribution,
@@ -92,13 +80,7 @@ class SendCoordinatorReminders extends Command
                         $type
                     ));
 
-
-                /*
-                |--------------------------------------------------------------------------
-                | Escalation to University Marketing Manager
-                |--------------------------------------------------------------------------
-                */
-
+                // Escalation to University Marketing Manager
                 if ($type === 'breach') {
 
                     $manager = User::role($this->managerRole)->first();
