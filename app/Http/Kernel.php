@@ -4,6 +4,9 @@ namespace App\Http;
 
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
 
+// The HTTP kernel is the central place where all HTTP requests are handled in a Laravel application. 
+// It defines the global middleware stack, route middleware groups, and middleware aliases that are used to process incoming requests and generate responses. 
+// The global middleware stack includes middleware that is run during every request to the application, while route middleware groups allow you to group middleware together and apply them to specific routes. Middleware aliases provide a convenient way to reference middleware by a short name instead of the full class name.
 class Kernel extends HttpKernel
 {
     /**

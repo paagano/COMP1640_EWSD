@@ -7,6 +7,11 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\DB;
 
+// The LogUserActivity middleware is responsible for logging user activity on the website. 
+// It captures information such as the user's ID, the page they visited, the HTTP method used, the browser and platform they are using, and their IP address. 
+// This information is stored in the activity_logs table in the database. The middleware checks if the user is authenticated and skips logging for static assets like CSS, JavaScript, images, and the favicon. 
+// This allows the application to keep track of user interactions and can be useful for analytics, debugging, and monitoring user behavior on the website. 
+// By implementing this middleware, the application can gain insights into how users are navigating through the site and identify any potential issues or areas for improvement.
 class LogUserActivity
 {
     
@@ -51,7 +56,6 @@ class LogUserActivity
     // ---------------------------------------------------------------------------------------
     //  Browser Detection: A simple method to identify the browser from the User-Agent string.
     // ---------------------------------------------------------------------------------------
-
     private function detectBrowser($userAgent)
     {
 

@@ -11,9 +11,9 @@ use Illuminate\Support\Str;
  */
 class UserFactory extends Factory
 {
-    /**
-     * The current password being used by the factory.
-     */
+
+     // The current password being used by the factory. 
+     // This is stored as a static property to ensure that all users created by the factory share the same password, which can be useful for testing and seeding purposes. The password is hashed using Laravel's Hash facade to ensure security.
     protected static ?string $password;
 
     /**
@@ -32,9 +32,7 @@ class UserFactory extends Factory
         ];
     }
 
-    /**
-     * Indicate that the model's email address should be unverified.
-     */
+     // Indicate that the model's email address should be unverified.
     public function unverified(): static
     {
         return $this->state(fn (array $attributes) => [

@@ -14,6 +14,7 @@ class Image extends Model
         'image_path'
     ];
 
+    // Each image belongs to a specific contribution, which allows the system to easily retrieve the contribution that an image is associated with.
     public function contribution()
     {
         return $this->belongsTo(Contribution::class);

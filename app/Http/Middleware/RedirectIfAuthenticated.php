@@ -8,6 +8,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
+// This middleware checks if the user is authenticated and redirects them to the home page if they are. 
+// It is typically used to prevent authenticated users from accessing the login or registration pages. 
+// If the user is not authenticated, it allows the request to proceed to the intended destination. Can specify which guards to check for authentication by passing them as parameters to the middleware.
 class RedirectIfAuthenticated
 {
     /**

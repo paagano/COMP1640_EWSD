@@ -17,11 +17,13 @@ class Comment extends Model
         'commented_at'
     ];
 
+    // Relationships
     public function contribution()
     {
         return $this->belongsTo(Contribution::class);
     }
 
+    // Each comment belongs to a coordinator, which allows the system to identify which user (coordinator) made the comment on the contribution.
     public function coordinator()
     {
         return $this->belongsTo(User::class, 'coordinator_id');

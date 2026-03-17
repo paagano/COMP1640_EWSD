@@ -8,11 +8,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
 use Illuminate\View\View;
 
+// The PasswordResetLinkController class is responsible for handling password reset link requests.
+// It provides a method to display the password reset link request view and another method to handle the incoming password reset link request. 
+// The create method returns the view for requesting a password reset link, while the store method validates the email input and attempts to send a password reset link to the user's email address. 
+// If the email is sent successfully, the user is redirected back with a status message indicating that the reset link has been sent. If there is an error, the user is redirected back with the input and an error message.
 class PasswordResetLinkController extends Controller
 {
-    /**
-     * Display the password reset link request view.
-     */
+
+    // Display the password reset link request view.
     public function create(): View
     {
         return view('auth.forgot-password');

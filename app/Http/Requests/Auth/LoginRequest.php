@@ -9,11 +9,14 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
+// This class represents a form request for handling user login. 
+// It extends the base FormRequest class provided by Laravel and includes methods for validating the login credentials, checking for rate limiting, and authenticating the user. 
+// The rules method defines the validation rules for the email and password fields, while the authenticate method attempts to log in the user and handles rate limiting if the login attempt fails. 
+// The ensureIsNotRateLimited method checks if the user has exceeded the maximum number of login attempts and throws a validation exception if they have. The throttleKey method generates a unique key for rate limiting based on the user's email and IP address.
 class LoginRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
+
+    // Determine if the user is authorized to make this request.
     public function authorize(): bool
     {
         return true;
@@ -75,9 +78,8 @@ class LoginRequest extends FormRequest
         ]);
     }
 
-    /**
-     * Get the rate limiting throttle key for the request.
-     */
+   
+    // Get the rate limiting throttle key for the request.
     public function throttleKey(): string
     {
         return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());

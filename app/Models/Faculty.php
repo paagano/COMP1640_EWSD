@@ -6,6 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
 use App\Models\Contribution;
 
+// The Faculty model represents an academic faculty within the University of Glasgow's Annual Magazine System. 
+// Each faculty has a name, a guest email, and a guest password for accessing the system. 
+// The model defines relationships to users (students and coordinators) and contributions associated with the faculty. 
+// Additionally, it includes a method to retrieve the marketing coordinator for the faculty, which is determined by filtering the users based on their role. 
+// This structure allows for efficient management of faculties, their associated users, and contributions, facilitating the organization and categorization of submissions for the annual
 class Faculty extends Model
 {
     protected $fillable = [
