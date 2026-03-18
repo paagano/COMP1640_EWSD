@@ -1,4 +1,36 @@
 <x-app-layout>
+
+<style>
+/* ============================= */
+/* FIX PAGINATION STYLING */
+/* ============================= */
+
+.pagination {
+    font-size: 14px;
+}
+
+.pagination svg {
+    width: 14px !important;
+    height: 14px !important;
+}
+
+.pagination .page-link {
+    padding: 6px 10px;
+    border-radius: 6px;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: #fff;
+}
+
+.pagination .page-link:hover {
+    background-color: #f1f5f9;
+}
+</style>
+
+
 <div class="container py-4">
 
     <h2 class="mb-3">Manage Users</h2>
@@ -155,103 +187,111 @@
                     </td>
                 </tr>
 
-                {{-- ============================= --}}
                 {{-- EDIT MODAL --}}
-                {{-- ============================= --}}
-                <div class="modal fade"
-                     id="editUser{{ $user->id }}"
-                     tabindex="-1">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
+<div class="modal fade"
+     id="editUser{{ $user->id }}"
+     tabindex="-1">
 
-                            <form method="POST"
-                                  action="{{ route('admin.users.update', $user) }}">
-                                @csrf
-                                @method('PUT')
+    <div class="modal-dialog">
+        <div class="modal-content">
 
-                                <div class="modal-header">
-                                    <h5 class="modal-title">
-                                        Update User Profile
-                                    </h5>
-                                    <button type="button"
-                                            class="btn-close"
-                                            data-bs-dismiss="modal"></button>
-                                </div>
+            {{-- MAIN UPDATE FORM --}}
+            <form method="POST"
+                  action="{{ route('admin.users.update', $user) }}">
+                @csrf
+                @method('PUT')
 
-                                <div class="modal-body">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        Update User Profile
+                    </h5>
 
-                                    <div class="mb-3">
-                                        <label class="form-label">Full Name</label>
-                                        <input type="text"
-                                               name="name"
-                                               class="form-control"
-                                               value="{{ $user->name }}"
-                                               required>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label class="form-label">Email</label>
-                                        <input type="email"
-                                               name="email"
-                                               class="form-control"
-                                               value="{{ $user->email }}"
-                                               required>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label class="form-label">Role</label>
-                                        <select name="role" class="form-select">
-                                            @foreach($roles as $role)
-                                                <option value="{{ $role->name }}"
-                                                    {{ $user->hasRole($role->name) ? 'selected' : '' }}>
-                                                    {{ $role->name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-
-                                    {{-- EDIT FACULTY --}}
-                                    <div class="mb-3">
-                                        <label class="form-label">Faculty</label>
-                                        <select name="faculty_id" class="form-select">
-                                            @foreach($faculties as $faculty)
-                                                <option value="{{ $faculty->id }}"
-                                                    {{ $user->faculty_id == $faculty->id ? 'selected' : '' }}>
-                                                    {{ $faculty->name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-
-                                    <hr>
-
-                                    <form method="POST"
-                                          action="{{ route('admin.users.reset-password', $user) }}">
-                                        @csrf
-                                        <button type="submit"
-                                                class="btn btn-warning">
-                                            Reset User Password
-                                        </button>
-                                    </form>
-
-                                </div>
-
-                                <div class="modal-footer">
-                                    <button type="button"
-                                            class="btn btn-secondary"
-                                            data-bs-dismiss="modal">
-                                        Cancel
-                                    </button>
-                                    <button class="btn btn-success">
-                                        Save Changes
-                                    </button>
-                                </div>
-
-                            </form>
-
-                        </div>
-                    </div>
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"></button>
                 </div>
+
+                <div class="modal-body">
+
+                    <div class="mb-3">
+                        <label class="form-label">Full Name</label>
+                        <input type="text"
+                               name="name"
+                               class="form-control"
+                               value="{{ $user->name }}"
+                               required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email"
+                               name="email"
+                               class="form-control"
+                               value="{{ $user->email }}"
+                               required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Role</label>
+                        <select name="role" class="form-select">
+                            @foreach($roles as $role)
+                                <option value="{{ $role->name }}"
+                                    {{ $user->hasRole($role->name) ? 'selected' : '' }}>
+                                    {{ $role->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Faculty</label>
+                        <select name="faculty_id" class="form-select">
+                            @foreach($faculties as $faculty)
+                                <option value="{{ $faculty->id }}"
+                                    {{ $user->faculty_id == $faculty->id ? 'selected' : '' }}>
+                                    {{ $faculty->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+
+                    <button type="submit"
+                            class="btn btn-success">
+                        Save Changes
+                    </button>
+
+                </div>
+
+            </form>
+
+            {{-- SEPARATE RESET PASSWORD FORM --}}
+            <div class="px-3 pb-3">
+                <form method="POST"
+                      action="{{ route('admin.users.reset-password', $user) }}">
+                    @csrf
+
+                    <button type="submit"
+                            class="btn btn-warning w-100"
+                            onclick="return confirm('Reset this user password?')">
+                        Reset User Password
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+</div>
 
             @empty
                 <tr>
@@ -264,7 +304,9 @@
     </table>
 
     <div class="mt-3">
-        {{ $users->withQueryString()->links() }}
+        <div class="pagination justify-content-center">
+            {{ $users->withQueryString()->links() }}
+        </div>
     </div>
 
 </div>
