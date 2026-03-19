@@ -188,32 +188,51 @@
                     <a href="{{ route('profile.show') }}"
                        class="text-decoration-none text-white">
 
-                        <div class="navbar-user-block text-end
+                        <div class="d-flex align-items-center gap-2 navbar-user-block
                              {{ request()->routeIs('profile.show') ? 'active-nav' : '' }}">
 
-                            <div class="fw-semibold small">
+                            {{-- 🔥 PROFILE IMAGE --}}
+                            @if(auth()->user()->profile_photo)
+                                <img src="{{ asset('storage/' . auth()->user()->profile_photo) }}"
+                                     class="rounded-circle border"
+                                     width="40"
+                                     height="40"
+                                     style="object-fit: cover;">
+                            @else
+                                <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center"
+                                     style="width:40px; height:40px; font-size:14px;">
+                                    {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
+                                </div>
+                            @endif
 
-                                {{ auth()->user()->name }}
+                            {{-- USER INFO --}}
+                            <div class="text-start">
 
-                                <span class="text-light opacity-75">
-                                    ({{ auth()->user()->getRoleNames()->first() ?? 'User' }})
-                                </span>
+                                <div class="fw-semibold small">
+
+                                    {{ auth()->user()->name }}
+
+                                    <span class="text-light opacity-75">
+                                        ({{ auth()->user()->getRoleNames()->first() ?? 'User' }})
+                                    </span>
+
+                                </div>
+
+                                <small class="text-light">
+
+                                    @if($lastLogin)
+
+                                        Last login: {{ \Carbon\Carbon::parse($lastLogin)->format('d M Y, H:i') }}
+
+                                    @else
+
+                                        🕒First login. Welcome!👋 
+
+                                    @endif
+
+                                </small>
 
                             </div>
-
-                            <small class="text-light">
-
-                                @if($lastLogin)
-
-                                    Last login: {{ \Carbon\Carbon::parse($lastLogin)->format('d M Y, H:i') }}
-
-                                @else
-
-                                    🕒First login. Welcome!👋 
-
-                                @endif
-
-                            </small>
 
                         </div>
 

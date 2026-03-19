@@ -36,6 +36,19 @@ class AuthenticatedSessionController extends Controller
 
         $user = $request->user();
 
+        // --------------------------------------------------------------------------
+        // Account Status Check (Prevent login if deactivated)
+        // --------------------------------------------------------------------------
+        if (!$user->is_active) {
+
+            // Immediately logout user
+            Auth::logout();
+
+            return back()->withErrors([
+                'email' => "Your account is currently 'deactivated'. Contact admin."
+            ]);
+        }
+
         // Store the previous login timestamp in session
         // This allows the dashboard to display the last login
         session(['last_login_at' => $user->last_login_at]);

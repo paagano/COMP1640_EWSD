@@ -85,6 +85,7 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/password', [ProfileController::class, 'updatePassword'])
             ->name('password.update');
 
+        // Deactivate (soft delete)
         Route::delete('/deactivate', [ProfileController::class, 'deactivate'])
             ->name('deactivate');
 
@@ -101,25 +102,11 @@ Route::middleware(['auth'])->group(function () {
 
         $user = auth()->user();
 
-        if ($user->hasRole('Admin')) {
-            return redirect()->route('admin.dashboard');
-        }
-
-        if ($user->hasRole('Marketing Manager')) {
-            return redirect()->route('manager.dashboard');
-        }
-
-        if ($user->hasRole('Marketing Coordinator')) {
-            return redirect()->route('coordinator.dashboard');
-        }
-
-        if ($user->hasRole('Student')) {
-            return redirect()->route('student.dashboard');
-        }
-
-        if ($user->hasRole('Guest')) {
-            return redirect()->route('guest.dashboard');
-        }
+        if ($user->hasRole('Admin')) return redirect()->route('admin.dashboard');
+        if ($user->hasRole('Marketing Manager')) return redirect()->route('manager.dashboard');
+        if ($user->hasRole('Marketing Coordinator')) return redirect()->route('coordinator.dashboard');
+        if ($user->hasRole('Student')) return redirect()->route('student.dashboard');
+        if ($user->hasRole('Guest')) return redirect()->route('guest.dashboard');
 
         return redirect()->route('home');
 
@@ -137,31 +124,44 @@ Route::middleware(['auth'])->group(function () {
         ->name('admin.')
         ->group(function () {
 
+        // Dashboard
         Route::get('/dashboard', [AdminDashboard::class, 'index'])
             ->name('dashboard');
 
 
         /*
         |--------------------------------------------------------------------------
-        | USERS
+        | USERS (FULL LIFECYCLE)
         |--------------------------------------------------------------------------
         */
 
-        Route::get('/users', [UserController::class, 'index'])
-            ->name('users.index');
+        Route::get('/users', [UserController::class, 'index'])->name('users.index');
 
-        Route::post('/users', [UserController::class, 'store'])
-            ->name('users.store');
+        Route::post('/users', [UserController::class, 'store'])->name('users.store');
 
-        Route::put('/users/{user}', [UserController::class, 'update'])
-            ->name('users.update');
+        Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
 
-        Route::delete('/users/{user}', [UserController::class, 'destroy'])
-            ->name('users.destroy');
+        Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
 
         Route::post('/users/{user}/reset-password',
-            [UserController::class, 'resetPassword'])
-            ->name('users.reset-password');
+            [UserController::class, 'resetPassword'])->name('users.reset-password');
+
+        // Activate / Deactivate
+        Route::put('/users/{user}/deactivate', [UserController::class, 'deactivate'])
+            ->name('users.deactivate');
+
+        Route::put('/users/{user}/activate', [UserController::class, 'activate'])
+            ->name('users.activate');
+
+        // BULK ACTIONS
+        Route::post('/users/bulk-activate', [UserController::class, 'bulkActivate'])
+            ->name('users.bulk.activate');
+
+        Route::post('/users/bulk-deactivate', [UserController::class, 'bulkDeactivate'])
+            ->name('users.bulk.deactivate');
+
+        Route::post('/users/bulk-delete', [UserController::class, 'bulkDelete'])
+            ->name('users.bulk.delete');
 
 
         /*
@@ -259,25 +259,19 @@ Route::middleware(['auth'])->group(function () {
         ->name('manager.')
         ->group(function () {
 
-        Route::get('/dashboard', [ManagerDashboard::class, 'index'])
-            ->name('dashboard');
+        Route::get('/dashboard', [ManagerDashboard::class, 'index'])->name('dashboard');
 
-        Route::get('/download-zip', [ExportController::class, 'downloadZip'])
-            ->name('download.zip');
+        Route::get('/download-zip', [ExportController::class, 'downloadZip'])->name('download.zip');
 
-        Route::get('/export-csv', [ExportController::class, 'exportCsv'])
-            ->name('export.csv');
+        Route::get('/export-csv', [ExportController::class, 'exportCsv'])->name('export.csv');
 
-        Route::get('/export-pdf', [ExportController::class, 'exportPdf'])
-            ->name('export.pdf');
+        Route::get('/export-pdf', [ExportController::class, 'exportPdf'])->name('export.pdf');
 
         Route::get('/contributions/{contribution}',
-            [ManagerContributionController::class, 'show'])
-            ->name('contributions.show');
+            [ManagerContributionController::class, 'show'])->name('contributions.show');
 
         Route::post('/contributions/{contribution}/publish',
-            [ManagerContributionController::class, 'publish'])
-            ->name('contributions.publish');
+            [ManagerContributionController::class, 'publish'])->name('contributions.publish');
 
     });
 
@@ -293,20 +287,16 @@ Route::middleware(['auth'])->group(function () {
         ->name('coordinator.')
         ->group(function () {
 
-        Route::get('/dashboard', [CoordinatorDashboard::class, 'index'])
-            ->name('dashboard');
+        Route::get('/dashboard', [CoordinatorDashboard::class, 'index'])->name('dashboard');
 
         Route::get('/contributions',
-            [CoordinatorContributionController::class, 'index'])
-            ->name('contributions.index');
+            [CoordinatorContributionController::class, 'index'])->name('contributions.index');
 
         Route::get('/contributions/{contribution}',
-            [CoordinatorContributionController::class, 'show'])
-            ->name('contributions.show');
+            [CoordinatorContributionController::class, 'show'])->name('contributions.show');
 
         Route::post('/contributions/{contribution}/update-status',
-            [CoordinatorContributionController::class, 'updateStatus'])
-            ->name('contributions.updateStatus');
+            [CoordinatorContributionController::class, 'updateStatus'])->name('contributions.updateStatus');
 
     });
 
@@ -322,33 +312,24 @@ Route::middleware(['auth'])->group(function () {
         ->name('student.')
         ->group(function () {
 
-        Route::get('/dashboard', [StudentDashboard::class, 'index'])
-            ->name('dashboard');
+        Route::get('/dashboard', [StudentDashboard::class, 'index'])->name('dashboard');
 
-        Route::get('/contributions', [StudentContributionController::class, 'index'])
-            ->name('contributions.index');
+        Route::get('/contributions', [StudentContributionController::class, 'index'])->name('contributions.index');
 
-        Route::get('/contributions/create', [StudentContributionController::class, 'create'])
-            ->name('contributions.create');
+        Route::get('/contributions/create', [StudentContributionController::class, 'create'])->name('contributions.create');
 
-        Route::post('/contributions', [StudentContributionController::class, 'store'])
-            ->name('contributions.store');
+        Route::post('/contributions', [StudentContributionController::class, 'store'])->name('contributions.store');
 
-        Route::get('/contributions/{contribution}', [StudentContributionController::class, 'show'])
-            ->name('contributions.show');
+        Route::get('/contributions/{contribution}', [StudentContributionController::class, 'show'])->name('contributions.show');
 
-        Route::get('/contributions/{contribution}/edit', [StudentContributionController::class, 'edit'])
-            ->name('contributions.edit');
+        Route::get('/contributions/{contribution}/edit', [StudentContributionController::class, 'edit'])->name('contributions.edit');
 
-        Route::put('/contributions/{contribution}', [StudentContributionController::class, 'update'])
-            ->name('contributions.update');
+        Route::put('/contributions/{contribution}', [StudentContributionController::class, 'update'])->name('contributions.update');
 
-        Route::delete('/contributions/{contribution}', [StudentContributionController::class, 'destroy'])
-            ->name('contributions.destroy');
+        Route::delete('/contributions/{contribution}', [StudentContributionController::class, 'destroy'])->name('contributions.destroy');
 
         Route::get('/contributions/{contribution}/download',
-            [StudentContributionController::class, 'download'])
-            ->name('contributions.download');
+            [StudentContributionController::class, 'download'])->name('contributions.download');
 
     });
 
@@ -364,8 +345,7 @@ Route::middleware(['auth'])->group(function () {
         ->name('guest.')
         ->group(function () {
 
-        Route::get('/dashboard', [GuestDashboard::class, 'index'])
-            ->name('dashboard');
+        Route::get('/dashboard', [GuestDashboard::class, 'index'])->name('dashboard');
 
         Route::get('/download-magazine', [GuestDashboard::class, 'downloadMagazine'])
             ->name('download.magazine');
