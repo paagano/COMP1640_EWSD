@@ -1,4 +1,13 @@
 <x-guest-layout>
+
+        <!-- HOME BUTTON (Top Right Corner) -->
+    <div style="position: absolute; top: 20px; right: 30px;">
+        <a href="/"
+           class="text-sm font-semibold text-gray-700 hover:text-indigo-600 ">
+            Home
+        </a>
+    </div>
+    
     <div class="mb-4 text-sm text-gray-600">
         {{ __('Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow you to choose a new one.') }}
     </div>

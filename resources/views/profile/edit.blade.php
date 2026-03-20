@@ -181,7 +181,7 @@
             </span>
         </div>
 
-        {{-- 🔥 ADMIN = OPEN | OTHERS = CLOSED --}}
+        {{-- ADMIN = OPEN | OTHERS = CLOSED --}}
         <div id="loginHistoryCollapse"
              class="collapse {{ auth()->user()->hasRole('Admin') ? 'show' : '' }}">
 

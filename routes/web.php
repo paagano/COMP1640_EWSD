@@ -352,8 +352,19 @@ Route::middleware(['auth'])->group(function () {
 
     });
 
+    // This route allows guests to download the magazine without needing to access the dashboard first.
     Route::get('/guest/download-magazine', [App\Http\Controllers\Guest\DashboardController::class, 'downloadMagazine'])
         ->name('guest.download.magazine');
+
+    // Password Reset Routes (accessible to guests)
+    Route::get('/forgot-password', [App\Http\Controllers\Auth\PasswordResetLinkController::class, 'create'])
+        ->name('password.request');
+        
+    Route::post('/forgot-password', [App\Http\Controllers\Auth\PasswordResetLinkController::class, 'store'])
+        ->name('password.email');
+
+    Route::get('/reset-password/{token}', [App\Http\Controllers\Auth\ResetPasswordController::class, 'create'])
+        ->name('password.reset');
 
 });
 
