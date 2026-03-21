@@ -261,7 +261,7 @@
 
 <div class="modal-body">
 This demo system uses <strong>stateless ephemeral cloud storage</strong>.<br><br>
-Previously uploaded files may become unavailable after some time.<br><br>
+Previously uploaded files (user profile photos, contribution documents and associated images) may become unavailable after some time.<br><br>
 Please re-upload if missing.
 </div>
 
