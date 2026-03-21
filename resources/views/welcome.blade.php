@@ -56,6 +56,40 @@
             font-weight: 600;
         }
 
+        /* Countdown Timer Badge Styles - Compact Format */
+        .countdown-badge {
+            background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%);
+            color: #1e2a3a;
+            font-weight: 700;
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            white-space: nowrap;
+            font-family: 'SF Mono', 'Courier New', monospace;
+        }
+        
+        .countdown-badge i {
+            margin-right: 8px;
+            font-size: 0.85rem;
+        }
+        
+        .countdown-badge.closed {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+        }
+        
+        @media (max-width: 768px) {
+            .countdown-badge {
+                font-size: 0.7rem;
+                padding: 5px 10px;
+                white-space: normal;
+                text-align: center;
+                line-height: 1.3;
+            }
+        }
+
         /* 🔔 Bell */
         .notification-wrapper {
             position: relative;
@@ -255,6 +289,19 @@
             transform: scale(1.05);
             transition: transform 0.2s ease;
         }
+        
+        /* Navbar countdown container */
+        .countdown-container {
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        /* Compact countdown text styling */
+        .compact-countdown {
+            font-family: 'SF Mono', 'Courier New', monospace;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
     </style>
 
 </head>
@@ -269,17 +316,13 @@
             </a>
 
             <div class="d-flex align-items-center ms-auto">
-                @if(isset($daysRemaining) && !$submissionClosed)
-                    <span class="badge bg-warning text-dark me-3">
-                        {{ $daysRemaining }} Days Remaining
+                <!-- Dynamic Countdown Timer Badge - Compact Format -->
+                <div class="countdown-container me-3" id="countdownContainer">
+                    <span class="countdown-badge" id="liveCountdownBadge">
+                        <i class="fas fa-hourglass-half"></i> 
+                        <span id="countdownText" class="compact-countdown">Loading...</span>
                     </span>
-                @endif
-
-                @if(isset($submissionClosed) && $submissionClosed)
-                    <span class="badge bg-danger me-3">
-                        Submissions Closed
-                    </span>
-                @endif
+                </div>
 
                 @auth
                     <a href="{{ route('dashboard') }}" class="btn btn-outline-light btn-sm">
@@ -332,13 +375,16 @@
                             </div>
 
                             <div class="panel-item">
-                                @if($submissionClosed)
-                                    <div class="panel-label text-danger">Submission Status</div>
-                                    <div class="panel-value text-danger">Submissions Closed</div>
-                                @else
-                                    <div class="panel-label">Submission Deadline</div>
-                                    <div class="panel-value">{{ $daysRemaining }} Days Remaining</div>
-                                @endif
+                                <div class="panel-label">Submission Deadline</div>
+                                <div class="panel-value" id="deadlinePanelValue">
+                                    <span id="heroCountdownText" class="compact-countdown">
+                                        @if($submissionClosed)
+                                            Submissions Closed
+                                        @else
+                                            --D --H --M --S Remaining
+                                        @endif
+                                    </span>
+                                </div>
                             </div>
 
                             <div class="panel-item">
@@ -504,7 +550,7 @@
         </div>
     </div>
 
-    <!-- DEMO CREDENTIALS MODAL - EQUAL WIDTH COLUMNS, EMAIL NOT SUBDIVIDED, COPY ICONS INTACT -->
+    <!-- DEMO CREDENTIALS MODAL -->
     <div class="modal fade demo-modal-wide" id="demoModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -618,7 +664,144 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Bell & Demo Modal Logic - Modified: Bell never disappears
+            // ============================================
+            // ACCURATE COUNTDOWN TIMER - READS FROM DATABASE
+            // Reads submission_closure_date from academic_years table
+            // NO FALLBACK DEFAULTS - Uses only actual DB data
+            // ============================================
+            
+            // Get the actual deadline from the database via Blade
+            // The $deadlineTimestamp variable is set in the controller
+            @php
+                // Ensure we have a valid deadline from the database
+                $deadlineString = null;
+                $isClosed = false;
+                
+                if(isset($academicYear) && $academicYear && isset($academicYear->submission_closure_date)) {
+                    $deadlineString = $academicYear->submission_closure_date;
+                    $isClosed = isset($submissionClosed) ? $submissionClosed : false;
+                }
+                
+                // Convert to JavaScript timestamp if deadline exists
+                $deadlineTimestamp = $deadlineString ? strtotime($deadlineString) : null;
+            @endphp
+            
+            let targetDeadline = null;
+            let submissionClosedFlag = @json($isClosed);
+            let hasValidDeadline = @json($deadlineTimestamp !== null);
+            
+            if (hasValidDeadline) {
+                // Use the actual database deadline
+                targetDeadline = new Date(@json($deadlineTimestamp * 1000));
+            } else {
+                // No deadline found in database - show error state
+                console.error('No submission_closure_date found in academic_years table');
+                targetDeadline = null;
+            }
+            
+            // DOM elements
+            const countdownTextSpan = document.getElementById('countdownText');
+            const heroCountdownSpan = document.getElementById('heroCountdownText');
+            const countdownBadge = document.getElementById('liveCountdownBadge');
+            
+            // Helper: Format number with leading zero (always 2 digits)
+            function formatNumber(num) {
+                return num.toString().padStart(2, '0');
+            }
+            
+            // Helper: Format the countdown display in compact format: 00D 02H 35M 12S Remaining
+            function formatCompactCountdown(days, hours, minutes, seconds) {
+                return `${formatNumber(days)}D ${formatNumber(hours)}H ${formatNumber(minutes)}M ${formatNumber(seconds)}S Remaining`;
+            }
+            
+            // Helper: Show deadline missing error
+            function showDeadlineMissingError() {
+                const errorText = 'Deadline Not Set';
+                if (countdownTextSpan) {
+                    countdownTextSpan.textContent = errorText;
+                }
+                if (heroCountdownSpan) {
+                    heroCountdownSpan.textContent = errorText;
+                }
+                if (countdownBadge) {
+                    countdownBadge.classList.add('closed');
+                    countdownBadge.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Deadline Not Set';
+                }
+            }
+            
+            // Helper: Update both displays
+            function updateCountdownDisplays(days, hours, minutes, seconds, isClosed) {
+                if (isClosed || (days <= 0 && hours <= 0 && minutes <= 0 && seconds <= 0)) {
+                    // Submissions closed
+                    const closedText = 'Submissions Closed';
+                    if (countdownTextSpan) {
+                        countdownTextSpan.textContent = closedText;
+                    }
+                    if (heroCountdownSpan) {
+                        heroCountdownSpan.textContent = closedText;
+                    }
+                    if (countdownBadge) {
+                        countdownBadge.classList.add('closed');
+                        countdownBadge.innerHTML = '<i class="fas fa-ban"></i> Submissions Closed';
+                    }
+                    return true; // indicates closed
+                } else {
+                    const formatted = formatCompactCountdown(days, hours, minutes, seconds);
+                    if (countdownTextSpan) {
+                        countdownTextSpan.textContent = formatted;
+                    }
+                    if (heroCountdownSpan) {
+                        heroCountdownSpan.textContent = formatted;
+                    }
+                    if (countdownBadge && !countdownBadge.classList.contains('closed')) {
+                        countdownBadge.innerHTML = `<i class="fas fa-hourglass-half"></i> ${formatted}`;
+                    } else if (countdownBadge && countdownBadge.classList.contains('closed')) {
+                        // If it was closed but now not, reset style
+                        countdownBadge.classList.remove('closed');
+                        countdownBadge.innerHTML = `<i class="fas fa-hourglass-half"></i> ${formatted}`;
+                    }
+                    return false;
+                }
+            }
+            
+            // Main countdown tick function
+            function tickCountdown() {
+                // If no valid deadline from database, show error
+                if (!targetDeadline) {
+                    showDeadlineMissingError();
+                    return;
+                }
+                
+                const now = new Date().getTime();
+                const distance = targetDeadline.getTime() - now;
+                
+                if (distance <= 0 || submissionClosedFlag) {
+                    // Time's up or already closed
+                    updateCountdownDisplays(0, 0, 0, 0, true);
+                    return;
+                }
+                
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                
+                updateCountdownDisplays(days, hours, minutes, seconds, false);
+            }
+            
+            // Initial tick only if we have a valid deadline
+            if (targetDeadline) {
+                tickCountdown();
+                // Update every second
+                setInterval(tickCountdown, 1000);
+            } else {
+                showDeadlineMissingError();
+            }
+            
+            // ============================================
+            // BELL & DEMO MODAL LOGIC
+            // ============================================
+            
             const bell = document.getElementById('demoBell');
             const icon = document.getElementById('demoBellIcon');
             const badge = document.getElementById('demoBadge');
@@ -631,7 +814,6 @@
             // Initialize bell state based on previous click
             function initializeBellState() {
                 if (isBellClicked) {
-                    // Bell was clicked before - stop animation, keep bell visible, remove badge
                     if (icon) {
                         icon.classList.remove('bell-animate');
                         icon.classList.add('bell-static');
@@ -640,7 +822,6 @@
                         badge.style.display = 'none';
                     }
                 } else {
-                    // Bell not clicked yet - show animation and badge
                     if (icon) {
                         icon.classList.remove('bell-static');
                         icon.classList.add('bell-animate');
@@ -649,7 +830,6 @@
                         badge.style.display = 'block';
                     }
                 }
-                // Ensure bell is always visible
                 if (bell) {
                     bell.style.display = 'inline-block';
                 }
@@ -665,22 +845,15 @@
                 bell.addEventListener('click', function (e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    
-                    // Show modal
                     modal.show();
                     
-                    // Mark bell as clicked if not already
                     if (!isBellClicked) {
                         isBellClicked = true;
                         localStorage.setItem('demoBellClicked', 'true');
-                        
-                        // Stop animation
                         if (icon) {
                             icon.classList.remove('bell-animate');
                             icon.classList.add('bell-static');
                         }
-                        
-                        // Remove badge
                         if (badge) {
                             badge.style.display = 'none';
                         }
@@ -688,12 +861,10 @@
                 });
             }
 
-            // Handle modal close button
             const closeDemoBtn = document.getElementById('closeDemo');
             if (closeDemoBtn) {
                 closeDemoBtn.addEventListener('click', function () {
                     modal.hide();
-                    // Bell remains visible, no further changes needed
                 });
             }
 
@@ -752,7 +923,6 @@
                 }
             }
 
-            // Attach to all copy buttons
             const copyButtons = document.querySelectorAll('.copy-icon-btn');
             
             function handleCopyClick(event) {
@@ -775,19 +945,15 @@
                 }
             });
             
-            // Initialize bell state on page load
             initializeBellState();
             
-            // Handle page navigation - preserve bell state across pages
             window.addEventListener('pageshow', function(event) {
                 if (event.persisted) {
-                    // Re-initialize bell state when page is loaded from cache
                     isBellClicked = localStorage.getItem('demoBellClicked') === 'true';
                     initializeBellState();
                 }
             });
             
-            // Additional styling for unified email cells
             const style = document.createElement('style');
             style.textContent = `
                 .email-cell-unified {
