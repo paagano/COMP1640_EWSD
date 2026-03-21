@@ -17,9 +17,6 @@ use Carbon\Carbon;
 
 class ContributionController extends Controller
 {
-    // --------------------------------------------------------------------------------------------
-    //  LIST CONTRIBUTIONS: Students can view a list of their contributions with status indicators.
-    // --------------------------------------------------------------------------------------------
     public function index()
     {
         $contributions = Auth::user()
@@ -30,18 +27,12 @@ class ContributionController extends Controller
         return view('student.contributions.index', compact('contributions'));
     }
 
-    // --------------------------------------------------------------------------------------------------------------------------------
-    //  SHOW
-    // --------------------------------------------------------------------------------------------------------------------------------
     public function show(Contribution $contribution)
     {
         $this->authorizeOwnership($contribution);
         return view('student.contributions.show', compact('contribution'));
     }
 
-    // ------------------------------------------------------------------------------------------------------
-    //  DOWNLOAD
-    // ------------------------------------------------------------------------------------------------------
     public function download(Contribution $contribution)
     {
         $this->authorizeOwnership($contribution);
@@ -57,9 +48,6 @@ class ContributionController extends Controller
         return Storage::disk('public')->download($contribution->word_document_path);
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------
-    //  CREATE
-    // ---------------------------------------------------------------------------------------------------------------------
     public function create()
     {
         $academicYear = AcademicYear::where('is_active', true)->first();
@@ -73,9 +61,6 @@ class ContributionController extends Controller
         return view('student.contributions.create');
     }
 
-    // -----------------------------------------------------------------------------------------------------
-    //  STORE
-    // -----------------------------------------------------------------------------------------------------
     public function store(Request $request)
     {
         $academicYear = AcademicYear::where('is_active', true)->first();
@@ -111,6 +96,7 @@ class ContributionController extends Controller
             'agreed_terms' => true,
         ]);
 
+        // SAVE IMAGES
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $index => $image) {
 
@@ -125,14 +111,38 @@ class ContributionController extends Controller
             }
         }
 
+        // SEND EMAIL TO FACULTY COORDINATOR
+        try {
+            $coordinator = User::role('Marketing Coordinator')
+                ->where('faculty_id', Auth::user()->faculty_id)
+                ->first();
+
+            if ($coordinator && $coordinator->email) {
+                Mail::to($coordinator->email)
+                    ->send(new ContributionSubmitted($contribution));
+
+                Log::info('Contribution email sent to coordinator', [
+                    'coordinator_id' => $coordinator->id,
+                    'email' => $coordinator->email,
+                    'contribution_id' => $contribution->id
+                ]);
+            } else {
+                Log::warning('No coordinator found for faculty', [
+                    'faculty_id' => Auth::user()->faculty_id
+                ]);
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Failed to send contribution email', [
+                'error' => $e->getMessage()
+            ]);
+        }
+
         return redirect()
             ->route('student.contributions.index')
             ->with('success', 'Contribution submitted successfully.');
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    //  EDIT
-    // ---------------------------------------------------------------------------------------------------------------------------
     public function edit(Contribution $contribution)
     {
         $this->authorizeOwnership($contribution);
@@ -141,9 +151,6 @@ class ContributionController extends Controller
         return view('student.contributions.edit', compact('contribution'));
     }
 
-    // -------------------------------------------------------------------------------------------------
-    //  UPDATE (🔥 FIXED FULLY)
-    // -------------------------------------------------------------------------------------------------
     public function update(Request $request, Contribution $contribution)
     {
         $this->authorizeOwnership($contribution);
@@ -159,7 +166,6 @@ class ContributionController extends Controller
             'alt_texts.*' => 'required|string',
         ]);
 
-        // WORD DOCUMENT
         if ($request->hasFile('word_document')) {
             if ($contribution->word_document_path) {
                 Storage::disk('public')->delete($contribution->word_document_path);
@@ -174,7 +180,6 @@ class ContributionController extends Controller
             'content_summary' => $request->content_summary,
         ]);
 
-        // DELETE
         if ($request->delete_images) {
             foreach ($request->delete_images as $id) {
                 $image = Image::find($id);
@@ -185,7 +190,6 @@ class ContributionController extends Controller
             }
         }
 
-        // REPLACE
         if ($request->hasFile('replace_images')) {
             foreach ($request->replace_images as $id => $file) {
                 if ($file) {
@@ -204,7 +208,6 @@ class ContributionController extends Controller
             }
         }
 
-        // REORDER
         if ($request->image_order) {
             $orderArray = explode(',', $request->image_order);
             foreach ($orderArray as $order => $id) {
@@ -212,7 +215,6 @@ class ContributionController extends Controller
             }
         }
 
-        // ADD NEW
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $index => $image) {
 
@@ -232,7 +234,6 @@ class ContributionController extends Controller
             ->with('success', 'Contribution updated successfully.');
     }
 
-    // DELETE CONTRIBUTION
     public function destroy(Contribution $contribution)
     {
         $this->authorizeOwnership($contribution);

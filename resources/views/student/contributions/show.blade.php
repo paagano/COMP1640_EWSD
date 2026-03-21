@@ -30,6 +30,17 @@
                     </td>
                 </tr>
 
+                {{-- ✅ NEW --}}
+                <tr>
+                    <th class="bg-light">Student</th>
+                    <td>{{ $contribution->student->name }}</td>
+                </tr>
+
+                <tr>
+                    <th class="bg-light">Faculty</th>
+                    <td>{{ $contribution->faculty->name }}</td>
+                </tr>
+
                 <tr>
                     <th class="bg-light">Status</th>
                     <td>
@@ -42,6 +53,28 @@
                         @elseif($contribution->status === 'rejected')
                             <span class="badge bg-danger">Rejected</span>
                         @endif
+                    </td>
+                </tr>
+
+                {{-- ✅ NEW --}}
+                <tr>
+                    <th class="bg-light">Download Count</th>
+                    <td>
+                        <span class="badge bg-info text-dark">
+                            {{ $contribution->download_count ?? 0 }} downloads
+                        </span>
+                    </td>
+                </tr>
+
+                {{-- ✅ NEW --}}
+                <tr>
+                    <th class="bg-light">Document</th>
+                    <td>
+                        <a href="{{ route('contributions.download', $contribution->id) }}"
+                           target="_blank"
+                           class="btn btn-outline-primary btn-sm">
+                            Download Document
+                        </a>
                     </td>
                 </tr>
 
@@ -66,7 +99,6 @@
                                 <img src="{{ asset('storage/'.$image->image_path) }}"
                                      class="img-fluid rounded"
                                      style="height:200px; object-fit:cover; cursor:pointer;"
-                                     
                                      title="{{ $image->alt_text }}"
                                      data-bs-toggle="tooltip"
 
@@ -79,6 +111,97 @@
                     @endforeach
                 </div>
             @endif
+
+
+            {{-- ========================= --}}
+            {{-- COORDINATOR REVIEW --}}
+            {{-- ========================= --}}
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body">
+
+                    <h5 class="fw-semibold mb-3">Coordinator Review</h5>
+
+                    @if($contribution->status === 'submitted')
+                        <div class="alert alert-info mb-0">
+                            Awaiting review by Marketing Coordinator.
+                        </div>
+                    @else
+                        <table class="table table-sm table-bordered align-middle mb-0">
+                            <tr>
+                                <th style="width: 25%" class="bg-light">Reviewed By</th>
+                                <td>{{ $contribution->reviewed_by ?? 'Marketing Coordinator' }}</td>
+                            </tr>
+
+                            <tr>
+                                <th class="bg-light">Review Date</th>
+                                <td>
+                                    {{ $contribution->reviewed_at 
+                                        ? \Carbon\Carbon::parse($contribution->reviewed_at)->format('d M Y, h:i A')
+                                        : '—'
+                                    }}
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <th class="bg-light">Review Comment</th>
+                                <td>
+                                    @if(!empty($contribution->review_comment))
+                                        <div style="white-space: pre-line;">
+                                            {{ $contribution->review_comment }}
+                                        </div>
+                                    @else
+                                        <span class="text-muted fst-italic">
+                                            No comment provided.
+                                        </span>
+                                    @endif
+                                </td>
+                            </tr>
+                        </table>
+                    @endif
+
+                </div>
+            </div>
+
+
+            {{-- ========================= --}}
+            {{-- SUBMISSION TIMELINE --}}
+            {{-- ========================= --}}
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body">
+
+                    <h5 class="fw-semibold mb-3">Submission Timeline</h5>
+
+                    <ul class="list-group">
+
+                        <li class="list-group-item">
+                            <strong>Submitted:</strong>
+                            {{ $contribution->created_at->format('d M Y, h:i A') }}
+                        </li>
+
+                        @if($contribution->reviewed_at)
+                            <li class="list-group-item">
+                                <strong>Reviewed:</strong>
+                                {{ \Carbon\Carbon::parse($contribution->reviewed_at)->format('d M Y, h:i A') }}
+                            </li>
+                        @endif
+
+                        @if($contribution->selected_at)
+                            <li class="list-group-item text-success">
+                                <strong>Selected:</strong>
+                                {{ \Carbon\Carbon::parse($contribution->selected_at)->format('d M Y') }}
+                            </li>
+                        @endif
+
+                        @if($contribution->status === 'rejected')
+                            <li class="list-group-item text-danger">
+                                <strong>Rejected</strong>
+                            </li>
+                        @endif
+
+                    </ul>
+
+                </div>
+            </div>
 
 
             <div class="text-end">
@@ -125,9 +248,6 @@
 </div>
 
 
-{{-- ========================= --}}
-{{-- STYLES --}}
-{{-- ========================= --}}
 <style>
 .image-modal {
     position: fixed;
@@ -136,14 +256,10 @@
     top: 0;
     width: 100%;
     height: 100%;
-
     background-color: rgba(0,0,0,0.7);
-
     display: flex;
     align-items: center;
     justify-content: center;
-
-    /* HIDDEN BY DEFAULT */
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s ease;
@@ -160,7 +276,6 @@
     max-width: 90%;
     border-radius: 10px;
     overflow: hidden;
-
     transform: scale(0.9);
     transition: transform 0.3s ease;
 }
@@ -169,7 +284,6 @@
     transform: scale(1);
 }
 
-/* HEADER */
 .modal-header {
     display: flex;
     justify-content: space-between;
@@ -178,12 +292,6 @@
     border-bottom: 1px solid #ddd;
 }
 
-.modal-title {
-    margin: 0;
-    font-weight: 600;
-}
-
-/* BODY */
 .modal-body {
     padding: 20px;
 }
@@ -194,14 +302,6 @@
     object-fit: contain;
 }
 
-/* DESCRIPTION */
-.modal-desc {
-    text-align: left;
-    font-size: 14px;
-    color: #444;
-}
-
-/* CLOSE */
 .close-btn {
     font-size: 22px;
     cursor: pointer;
@@ -209,12 +309,7 @@
 </style>
 
 
-{{-- ========================= --}}
-{{-- SCRIPT --}}
-{{-- ========================= --}}
 <script>
-
-// TOOLTIP INIT
 document.addEventListener("DOMContentLoaded", function () {
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
     tooltipTriggerList.map(function (el) {
@@ -239,14 +334,12 @@ function closeImageModal() {
     document.body.style.overflow = "auto";
 }
 
-// CLOSE ON OUTSIDE CLICK
 window.onclick = function(event) {
     const modal = document.getElementById("imageModal");
     if (event.target === modal) {
         closeImageModal();
     }
 }
-
 </script>
 
 </x-app-layout>

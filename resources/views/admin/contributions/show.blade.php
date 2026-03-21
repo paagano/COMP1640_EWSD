@@ -86,11 +86,11 @@
                 <tr>
                     <th class="bg-light">Document</th>
                     <td>
-                        <a href="{{ asset('storage/'.$contribution->word_document_path) }}"
-               target="_blank"
-               class="btn btn-outline-primary btn-sm">
-                Download Document
-            </a>
+                        <a href="{{ route('contributions.download', $contribution->id) }}"
+                           target="_blank"
+                           class="btn btn-outline-primary btn-sm">
+                            Download Document
+                        </a>
                     </td>
                 </tr>
             </table>
@@ -100,7 +100,7 @@
 
 
     {{-- ========================= --}}
-    {{-- IMAGE PREVIEW SECTION --}}
+    {{-- IMAGE SECTION (UPGRADED) --}}
     {{-- ========================= --}}
     @if($contribution->images && $contribution->images->count() > 0)
         <div class="card shadow-sm border-0 mb-4">
@@ -111,11 +111,18 @@
                 <div class="row g-3">
                     @foreach($contribution->images as $image)
                         <div class="col-md-3">
-                            <div class="card shadow-sm">
+                            <div class="card shadow-sm p-2">
+
                                 <img src="{{ asset('storage/'.$image->image_path) }}"
-                                     class="img-fluid rounded preview-image"
+                                     class="img-fluid rounded"
                                      style="height:200px; object-fit:cover; cursor:pointer;"
-                                     onclick="openImageModal('{{ asset('storage/'.$image->image_path) }}')">
+                                     title="{{ $image->alt_text }}"
+                                     data-bs-toggle="tooltip"
+
+                                     onclick="openImageModal(
+                                        '{{ asset('storage/'.$image->image_path) }}',
+                                        `{{ addslashes($image->alt_text) }}`
+                                     )">
                             </div>
                         </div>
                     @endforeach
@@ -220,68 +227,114 @@
 
 
 {{-- ========================= --}}
-{{-- IMAGE LIGHTBOX MODAL --}}
+{{-- MODAL (UPGRADED) --}}
 {{-- ========================= --}}
 <div id="imageModal" class="image-modal">
-    <span class="close-btn" onclick="closeImageModal()">&times;</span>
-    <img id="modalImage" class="modal-content">
+
+    <div class="modal-box">
+
+        <div class="modal-header">
+            <h5 class="modal-title">Image Preview</h5>
+            <span class="close-btn" onclick="closeImageModal()">&times;</span>
+        </div>
+
+        <div class="modal-body text-center">
+            <img id="modalImage" class="modal-img">
+
+            <div class="modal-desc mt-3">
+                <strong>Image Description:</strong>
+                <p id="modalDescription" class="mb-0"></p>
+            </div>
+        </div>
+
+    </div>
+
 </div>
 
 
-{{-- ========================= --}}
-{{-- STYLES --}}
-{{-- ========================= --}}
 <style>
 .image-modal {
-    display: none;
     position: fixed;
     z-index: 1050;
-    padding-top: 80px;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0,0,0,0.85);
-    text-align: center;
+    background-color: rgba(0,0,0,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease;
 }
 
-.image-modal img {
-    max-width: 80%;
-    max-height: 80vh;
-    border-radius: 8px;
-    box-shadow: 0 0 25px rgba(0,0,0,0.6);
-    animation: zoomIn 0.3s ease;
+.image-modal.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-box {
+    background: #fff;
+    width: 500px;
+    max-width: 90%;
+    border-radius: 10px;
+    overflow: hidden;
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+}
+
+.image-modal.show .modal-box {
+    transform: scale(1);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #ddd;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.modal-img {
+    width: 100%;
+    max-height: 300px;
+    object-fit: contain;
 }
 
 .close-btn {
-    position: absolute;
-    top: 20px;
-    right: 40px;
-    color: #fff;
-    font-size: 40px;
-    font-weight: bold;
+    font-size: 22px;
     cursor: pointer;
-}
-
-@keyframes zoomIn {
-    from { transform: scale(0.7); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
 }
 </style>
 
 
-{{-- ========================= --}}
-{{-- SCRIPT --}}
-{{-- ========================= --}}
 <script>
-function openImageModal(src) {
-    document.getElementById("imageModal").style.display = "block";
+document.addEventListener("DOMContentLoaded", function () {
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    tooltipTriggerList.map(function (el) {
+        return new bootstrap.Tooltip(el)
+    });
+});
+
+function openImageModal(src, description) {
+    const modal = document.getElementById("imageModal");
+
     document.getElementById("modalImage").src = src;
+    document.getElementById("modalDescription").innerText = description;
+
+    modal.classList.add("show");
     document.body.style.overflow = "hidden";
 }
 
 function closeImageModal() {
-    document.getElementById("imageModal").style.display = "none";
+    const modal = document.getElementById("imageModal");
+
+    modal.classList.remove("show");
     document.body.style.overflow = "auto";
 }
 

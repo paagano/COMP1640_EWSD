@@ -373,6 +373,10 @@ Route::middleware(['auth'])->group(function () {
         return response()->json(['success' => true]);
     })->name('notification.read');
 
+    Route::get('/contributions/{contribution}/download',
+    [App\Http\Controllers\ContributionDownloadController::class, 'download'])
+        ->name('contributions.download');
+
 });
 
 
