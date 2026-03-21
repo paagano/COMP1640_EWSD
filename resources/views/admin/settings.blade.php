@@ -17,7 +17,10 @@
         </ul>
 
         <div class="alert alert-info mt-3">
-            Settings functionality can be extended as needed.
+            <p>We will extend system functionality as needed in the future.</p>
+            <p>Becasue of limited time, we are not able to implement all features.</p>
+            <p>Team Oshwal College Evening Class Remains the GOAT!</p>
+
         </div>
 
     </div>

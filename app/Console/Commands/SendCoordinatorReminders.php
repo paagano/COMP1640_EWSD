@@ -17,10 +17,12 @@ class SendCoordinatorReminders extends Command
     // ---------------------------------------------------------------------------
     // CONFIGURABLE PARAMETERS: Adjust these values for testing or production use.
     // ---------------------------------------------------------------------------
+    
+    // php artisan reminders:coordinators OR php artisan schedule:run => the command to run the reminders manually. it will check contributions and send emails based on the defined time thresholds.
+    // php artisan schedule:work   -> to start the scheduler and keep it running continuously.
 
-    // Time unit for testing: Set to 'minutes' for quick testing, switch to 'days' for production.
-    // php artisan reminders:coordinators => the command to run the reminders manually. it will check contributions and send emails based on the defined time thresholds.
-
+    // Time unit for testing: Set to 'minutes' for quick testing, I will switch to 'days' for production. 
+    
     private $timeUnit = 'days';     // options: 'days' or 'minutes'
 
     private $friendlyReminder = 7;  // Day 7 reminder Testing: 1 minute reminder
