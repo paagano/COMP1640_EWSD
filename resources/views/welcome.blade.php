@@ -298,7 +298,7 @@
                     <div class="notification-wrapper ms-2"
                          id="demoBell"
                          data-bs-toggle="tooltip"
-                         title="Click to get demo credentials">
+                         title="Click to get demo login credentials">
                         <span class="text-white fs-5">
                             <span id="demoBellIcon" class="bell-animate">🔑</span>
                         </span>
@@ -525,11 +525,11 @@
                             </thead>
                             <tbody>
                                 <tr class="credential-row">
-                                    <td class="fw-semibold text-center">Student (Faculty of Computing)</td>
+                                    <td class="fw-semibold text-center">Student</td>
                                     <td>
                                         <div class="email-cell-unified">
-                                            <code class="email-text" id="email_student">student@uog.ac.uk</code>
-                                            <button class="copy-icon-btn" data-copy-value="student@uog.ac.uk" title="Copy email address">
+                                            <code class="email-text" id="email_student">computing.student@uog.ac.uk</code>
+                                            <button class="copy-icon-btn" data-copy-value="computing.student@uog.ac.uk" title="Copy email address">
                                                 <i class="far fa-copy"></i> <span class="copy-feedback d-none">Copied!</span>
                                             </button>
                                         </div>
@@ -539,8 +539,8 @@
                                     <td class="fw-semibold text-center">Faculty Marketing Coordinator</td>
                                     <td>
                                         <div class="email-cell-unified">
-                                            <code class="email-text" id="email_coordinator">coordinator@uog.ac.uk</code>
-                                            <button class="copy-icon-btn" data-copy-value="coordinator@uog.ac.uk" title="Copy email address">
+                                            <code class="email-text" id="email_coordinator">computing.coordinator@uog.ac.uk</code>
+                                            <button class="copy-icon-btn" data-copy-value="computing.coordinator@uog.ac.uk" title="Copy email address">
                                                 <i class="far fa-copy"></i> <span class="copy-feedback d-none">Copied!</span>
                                             </button>
                                         </div>

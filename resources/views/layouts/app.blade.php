@@ -132,7 +132,7 @@
                     <li class="nav-item notification-wrapper"
                         id="notificationBell"
                         data-bs-toggle="tooltip"
-                        title="Important Notification, Click to Read!"
+                        title="Important Notification! Click to Read."
                         style="display: none;">
                         <span class="nav-link text-white">
                             <span id="bellIcon" class="{{ $isUnread ? 'bell-animate' : '' }}">🔔</span>
@@ -204,7 +204,7 @@
                 </div>
 
                 <div class="modal-body">
-                    This system uses <strong>stateless ephemeral cloud storage</strong>.<br><br>
+                    This demo system uses <strong>stateless ephemeral cloud storage</strong>.<br><br>
                     Previously uploaded files (profile photos, contribution documents and images) may become unavailable after some time.<br><br>
                     Please re-upload if missing.
                 </div>
