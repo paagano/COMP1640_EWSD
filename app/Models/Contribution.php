@@ -19,7 +19,8 @@ class Contribution extends Model
         'faculty_id',
         'academic_year_id',
         'agreed_terms',
-        'published_at'
+        'published_at',
+       
     ];
 
     // Relationships

@@ -191,13 +191,15 @@
                         <div class="d-flex align-items-center gap-2 navbar-user-block
                              {{ request()->routeIs('profile.show') ? 'active-nav' : '' }}">
 
-                            {{-- 🔥 PROFILE IMAGE --}}
+                            {{-- PROFILE IMAGE --}}
                             @if(auth()->user()->profile_photo)
                                 <img src="{{ asset('storage/' . auth()->user()->profile_photo) }}"
-                                     class="rounded-circle border"
+                                     class="rounded-circle border img-fluid"
                                      width="40"
                                      height="40"
-                                     style="object-fit: cover;">
+                                     style="object-fit: cover;" 
+                                     alt="User Profile Photo">
+                                     
                             @else
                                 <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center"
                                      style="width:40px; height:40px; font-size:14px;">

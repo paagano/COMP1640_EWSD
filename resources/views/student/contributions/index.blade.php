@@ -8,11 +8,18 @@
                 View and manage your article submissions
             </small>
         </div>
+        <div>
+                <a href="{{ route('student.contributions.create') }}"
+                class="btn btn-success me-2">
+                    + New Submission
+                </a>
+                <a href="{{ route('student.dashboard') }}"
+                class="btn btn-outline-secondary">
+                    ← Back to Dashboard
+                </a>
+        </div>
 
-        <a href="{{ route('student.contributions.create') }}"
-           class="btn btn-primary">
-            + New Submission
-        </a>
+
     </div>
 
     {{-- Alerts --}}

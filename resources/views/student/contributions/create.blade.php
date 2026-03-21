@@ -1,6 +1,7 @@
 <x-app-layout>
 <div class="container py-4">
 
+
     <div class="mb-4">
         <h2 class="fw-semibold mb-1">New Contribution</h2>
         <small class="text-muted">
@@ -8,6 +9,7 @@
         </small>
     </div>
 
+ 
     <div class="card shadow-sm border-0">
         <div class="card-body">
 
@@ -48,14 +50,14 @@
                         Upload Word Document
                     </label>
 
-                    <div class="text-muted small mb-1">
-                        Allowed file types: .doc / .docx
-                    </div>
-
                     <input type="file"
                            name="word_document"
                            class="form-control @error('word_document') is-invalid @enderror"
                            required>
+                    
+                    <div class="text-muted small mb-1">
+                        Allowed file types: .DOC, .DOCX | Max size: 10MB
+                    </div>
 
                     @error('word_document')
                         <div class="invalid-feedback">{{ $message }}</div>
@@ -67,19 +69,34 @@
                     <label class="form-label fw-semibold">
                         Upload Supporting Images (Optional)
                     </label>
-
-                    <div class="text-muted small mb-1">
-                        Allowed image formats: .jpg / .jpeg / .png
-                    </div>
-
+      
                     <input type="file"
+                           id="images"
                            name="images[]"
                            multiple
+                           accept="image/*"
                            class="form-control @error('images.*') is-invalid @enderror">
+
+                    <div class="text-muted small mb-1">
+                        Supported formats: .JPG, .JPEG, .PNG, .GIF | Max 5 images | Max 5MB each | Recommended dimensions: 1200x800px 
+                    </div>
 
                     @error('images.*')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
+                </div>
+
+                {{-- DYNAMIC IMAGE DESCRIPTIONS --}}
+                <div id="imageDescriptionsContainer" class="mb-3 d-none">
+                    <label class="form-label fw-semibold">
+                        Image Descriptions <span class="text-danger">*</span>
+                    </label>
+
+                    <div id="descriptionsWrapper"></div>
+
+                    <div class="text-muted small">
+                        This description helps visually impaired users understand the image attached. Please help make the website accessible to everyone by providing a clear and concise description.
+                    </div>
                 </div>
 
                 {{-- Terms --}}
@@ -124,9 +141,61 @@
 
 </div>
 
-
-<!-- Terms and Conditions Modal: This modal is included on the contribution submission page to ensure that users agree to the terms and conditions related to their submissions before they can proceed with submitting their articles for review and publication consideration. -->
-
 @include('components.terms-modal')
+
+{{-- JAVASCRIPT --}}
+<script>
+    const imageInput = document.getElementById('images');
+    const container = document.getElementById('imageDescriptionsContainer');
+    const wrapper = document.getElementById('descriptionsWrapper');
+
+    imageInput.addEventListener('change', function () {
+
+        wrapper.innerHTML = '';
+
+        if (this.files.length > 0) {
+
+            if (this.files.length > 5) {
+                alert('Maximum 5 images allowed.');
+                this.value = '';
+                container.classList.add('d-none');
+                return;
+            }
+
+            container.classList.remove('d-none');
+
+            Array.from(this.files).forEach((file, index) => {
+
+                const sizeMB = file.size / (1024 * 1024);
+
+                if (sizeMB > 5) {
+                    alert(`"${file.name}" exceeds 5MB.`);
+                    imageInput.value = '';
+                    container.classList.add('d-none');
+                    wrapper.innerHTML = '';
+                    return;
+                }
+
+                const div = document.createElement('div');
+                div.classList.add('mb-2');
+
+                div.innerHTML = `
+                    <label class="form-label small fw-semibold">
+                        Description for ${file.name}
+                    </label>
+                    <textarea name="alt_texts[]"
+                              class="form-control"
+                              rows="2"
+                              required></textarea>
+                `;
+
+                wrapper.appendChild(div);
+            });
+
+        } else {
+            container.classList.add('d-none');
+        }
+    });
+</script>
 
 </x-app-layout>

@@ -11,7 +11,8 @@ class Image extends Model
 {
     protected $fillable = [
         'contribution_id',
-        'image_path'
+        'image_path',
+        'alt_text',
     ];
 
     // Each image belongs to a specific contribution, which allows the system to easily retrieve the contribution that an image is associated with.

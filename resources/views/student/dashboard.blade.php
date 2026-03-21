@@ -33,11 +33,12 @@
     <div class="mb-4">
         <h2 class="fw-semibold mb-1">Student Dashboard</h2>
 
-    <p class="text-muted mb-4">
-        <strong>
-            {{ Auth::user()->faculty->name ?? 'Not Assigned' }}
-        </strong>
-    </p>
+        <p class="text-muted mb-4">
+            <strong>
+                {{ Auth::user()->faculty->name ?? 'Not Assigned' }}
+            </strong>
+        </p>
+
         <small class="text-muted">
             Welcome, {{ $user->name }}.
         </small>
@@ -151,7 +152,8 @@
     <!-- Latest Submission -->
     @if($latest)
         <div class="card shadow-sm border-0">
-            <div class="card-body">
+            <div class="card-body d-flex flex-column">
+
                 <h6 class="fw-semibold mb-3">Latest Submission</h6>
 
                 <h5>{{ $latest->title }}</h5>
@@ -160,9 +162,20 @@
                     {{ \Illuminate\Support\Str::limit($latest->content_summary, 150) }}
                 </p>
 
-                <span class="badge bg-secondary">
-                    Status: {{ ucfirst($latest->status) }}
-                </span>
+                <!-- STATUS + BUTTON ROW -->
+                <div class="mt-auto d-flex justify-content-between align-items-center">
+
+                    <span class="badge bg-secondary">
+                        Status: {{ ucfirst($latest->status) }}
+                    </span>
+
+                    <a href="{{ route('student.contributions.show', $latest->id) }}"
+                       class="btn btn-outline-primary btn-sm">
+                        View Details
+                    </a>
+
+                </div>
+
             </div>
         </div>
     @endif
