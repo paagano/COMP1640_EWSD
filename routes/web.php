@@ -366,6 +366,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/reset-password/{token}', [App\Http\Controllers\Auth\ResetPasswordController::class, 'create'])
         ->name('password.reset');
 
+    Route::post('/notification/read', function () {
+        auth()->user()->update([
+            'notification_read_at' => now()
+        ]);
+        return response()->json(['success' => true]);
+    })->name('notification.read');
+
 });
 
 

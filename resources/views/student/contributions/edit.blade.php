@@ -43,7 +43,7 @@
                 {{-- EXISTING IMAGES --}}
                 {{-- ========================= --}}
                 @if($contribution->images && $contribution->images->count() > 0)
-                    <h5 class="fw-semibold mb-3">Change Images (Drag to reorder)</h5>
+                    <h5 class="mb-3">Replace Images (Drag to reorder)</h5>
 
                     <div id="sortableImages" class="row g-3 mb-4">
                         @foreach($contribution->images->sortBy('order') as $image)
