@@ -376,6 +376,13 @@
 
                             <div class="panel-item">
                                 <div class="panel-label">Submission Deadline</div>
+
+                                {{-- SHOW ACTUAL SUBMISSION CLOSURE DATE FROM DB --}}
+                                <div class="fw-bold text-primary mb-1">
+                                    <i class="fas fa-calendar-alt me-1"></i>
+                                    {{ \Carbon\Carbon::parse($academicYear->submission_closure_date)->format('F j, Y') }}
+                                </div>
+
                                 <div class="panel-value" id="deadlinePanelValue">
                                     <span id="heroCountdownText" class="compact-countdown">
                                         @if($submissionClosed)
@@ -394,7 +401,8 @@
                                             Submit Your Article Now
                                         </a>
                                     @else
-                                        <button class="btn btn-secondary w-100" disabled>
+                                        {{-- GREY + DISABLED --}}
+                                        <button class="btn btn-secondary w-100" disabled style="cursor: not-allowed;">
                                             Submissions Closed
                                         </button>
                                     @endif
