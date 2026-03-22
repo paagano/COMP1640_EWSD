@@ -302,6 +302,49 @@
             font-weight: 700;
             letter-spacing: 0.5px;
         }
+
+        /* URGENCY ANIMATION (< 24 HOURS) */
+        .urgent-btn {
+            background: #dc3545 !important;
+            border-color: #dc3545 !important;
+            color: #fff !important;
+            animation: pulse-red 1.5s infinite;
+        }
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+        }
+
+        /* FINAL HOUR SHAKE */
+        .final-hour-btn {
+            animation: shake 0.6s infinite;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-2px); }
+            50% { transform: translateX(2px); }
+            75% { transform: translateX(-2px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* FINAL HOURS BANNER */
+        .final-hours-banner {
+            background: #dc3545;
+            color: white;
+            text-align: center;
+            font-weight: 700;
+            padding: 8px;
+            animation: pulse-banner 1.5s infinite;
+        }
+
+        @keyframes pulse-banner {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+        
     </style>
 
 </head>
@@ -352,6 +395,10 @@
         </div>
     </nav>
 
+    <div id="finalHoursBanner" class="final-hours-banner d-none">
+        🚨 FINAL HOUR TO SUBMISSION DEADLINE 🚨
+    </div>
+
     <!-- MAIN -->
     <main class="flex-fill">
         <!-- HERO -->
@@ -397,7 +444,7 @@
                             <div class="panel-item">
                                 @guest
                                     @if(!$submissionClosed)
-                                        <a href="{{ route('login') }}" class="btn btn-primary w-100">
+                                        <a href="{{ route('login') }}" class="btn btn-primary w-100" id="submitBtn">
                                             Submit Your Article Now
                                         </a>
                                     @else
@@ -781,19 +828,63 @@
                 }
                 
                 const now = new Date().getTime();
-                const distance = targetDeadline.getTime() - now;
-                
+                const distance = targetDeadline - now;
+
+                const submitBtn = document.getElementById('submitBtn');
+                const finalBanner = document.getElementById('finalHoursBanner');
+
+                // CLOSED STATE
                 if (distance <= 0 || submissionClosedFlag) {
-                    // Time's up or already closed
+
                     updateCountdownDisplays(0, 0, 0, 0, true);
+
+                    // CLEANUP ALL STATES
+                    if (submitBtn) {
+                        submitBtn.classList.remove('urgent-btn', 'final-hour-btn');
+                    }
+
+                    if (finalBanner) {
+                        finalBanner.classList.add('d-none');
+                    }
+
                     return;
                 }
                 
+                // TIME CALCULATION
                 const days = Math.floor(distance / (1000 * 60 * 60 * 24));
                 const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                 const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
                 const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-                
+
+                const hoursRemaining = distance / (1000 * 60 * 60);
+
+                // TESTING: SIMULATE URGENCY STATES
+                // const hoursRemaining = 0.5; // simulate <1 hour
+
+                // URGENCY (<24 HOURS)
+                if (submitBtn) {
+                    if (hoursRemaining <= 24) {
+                        submitBtn.classList.add('urgent-btn');
+                    } else {
+                        submitBtn.classList.remove('urgent-btn');
+                    }
+
+                    // FINAL HOUR (<1 HOUR)
+                    if (hoursRemaining <= 1) {
+                        submitBtn.classList.add('final-hour-btn');
+
+                        if (finalBanner) {
+                            finalBanner.classList.remove('d-none');
+                        }
+                    } else {
+                        submitBtn.classList.remove('final-hour-btn');
+
+                        if (finalBanner) {
+                            finalBanner.classList.add('d-none');
+                        }
+                    }
+                }
+
                 updateCountdownDisplays(days, hours, minutes, seconds, false);
             }
             
