@@ -37,7 +37,28 @@
                     {{-- PROFILE IMAGE --}}
                     <div class="col-md-3 text-center mb-3">
 
+<<<<<<< HEAD
                         <div class="mb-2">
+=======
+                    @if($user->profile_photo)
+
+                        {{-- =============================== --}}
+                        {{-- INSERTED BELOW LINE. Removed old one --}}
+                        {{-- =============================== --}}
+                        
+                            <img src="{{ $user->profile_photo }}"
+                            class="rounded-circle"
+                            width="120"
+                            height="120"
+                            style="object-fit: cover;">
+                    @else
+                        <img src="https://ui-avatars.com/api/?name={{ urlencode($user->name) }}"
+                            class="rounded-circle"
+                            width="120"
+                            height="120"
+                            style="object-fit: cover;">
+                    @endif
+>>>>>>> 8ee02d48b0ed6145be52f059aba7b7469bdcc4cb
 
                             @php
                                 $profilePhoto = $user->profile_photo;
@@ -262,6 +283,7 @@
     @endunless
 
 </div>
+<<<<<<< HEAD
 
 
 {{-- =============================== --}}
@@ -285,3 +307,6 @@ function previewImage(event) {
 </script>
 
 </x-app-layout>
+=======
+</x-app-layout>
+>>>>>>> 8ee02d48b0ed6145be52f059aba7b7469bdcc4cb

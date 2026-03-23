@@ -9,6 +9,8 @@
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
+    @php use Illuminate\Support\Str; @endphp
+
     <style>
         .nav-link { padding: 6px 14px; border-radius: 6px; transition: all .15s ease; }
         .nav-link:hover { background: rgba(255,255,255,.12); }
@@ -59,6 +61,7 @@
         <div class="collapse navbar-collapse" id="navbarContent">
 
             @php
+<<<<<<< HEAD
                 $user = auth()->user();
 
                 // ROLE-BASED HOME ROUTE
@@ -122,10 +125,63 @@
                             @if($photoUrl)
                                 <img src="{{ $photoUrl }}"
                                      class="rounded-circle border shadow-sm"
+=======
+                $homeRoute = route('dashboard');
+
+                if(auth()->user()->hasRole('Admin')) $homeRoute = route('admin.dashboard');
+                elseif(auth()->user()->hasRole('Marketing Manager')) $homeRoute = route('manager.dashboard');
+                elseif(auth()->user()->hasRole('Marketing Coordinator')) $homeRoute = route('coordinator.dashboard');
+                elseif(auth()->user()->hasRole('Student')) $homeRoute = route('student.dashboard');
+
+                $lastLogin = session('last_login_at');
+                $isUnread = !auth()->user()->notification_read_at;
+
+                $photo = auth()->user()->profile_photo ?? null;
+                $photoUrl = $photo && Str::startsWith($photo, ['http://','https://'])
+                    ? $photo
+                    : ($photo ? asset('storage/'.$photo) : null);
+            @endphp
+
+            <ul class="navbar-nav ms-auto align-items-center gap-3">
+
+                <li class="nav-item">
+                    <a href="{{ $homeRoute }}" class="nav-link text-white {{ request()->routeIs('*dashboard') ? 'active-nav' : '' }}">
+                        Home
+                    </a>
+                </li>
+
+                @if(auth()->user()->hasRole('Admin'))
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown">
+                        Manage Entities
+                    </a>
+
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{{ route('admin.users.index') }}">Manage Users</a></li>
+                        <li><a class="dropdown-item" href="{{ route('admin.faculties.index') }}">Manage Faculties</a></li>
+                        <li><a class="dropdown-item" href="{{ route('admin.contributions.index') }}">Manage Contributions</a></li>
+                        <li><a class="dropdown-item" href="{{ route('admin.academic-years.index') }}">Manage Academic Years</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{{ route('admin.reports') }}">Reports</a></li>
+                        <li><a class="dropdown-item" href="{{ route('admin.settings') }}">System Settings</a></li>
+                    </ul>
+                </li>
+                @endif
+
+                <!-- USER -->
+                <li class="nav-item">
+                    <a href="{{ route('profile.show') }}" class="text-decoration-none text-white">
+                        <div class="d-flex align-items-center gap-2 navbar-user-block">
+
+                            @if($photoUrl)
+                                <img src="{{ $photoUrl }}"
+                                     class="rounded-circle border"
+>>>>>>> 8ee02d48b0ed6145be52f059aba7b7469bdcc4cb
                                      width="40"
                                      height="40"
                                      style="object-fit: cover;">
                             @else
+<<<<<<< HEAD
                                 <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center shadow-sm"
                                      style="width:40px; height:40px; font-size:14px;">
                                     {{ strtoupper(substr($user->name, 0, 2)) }}
@@ -166,6 +222,41 @@
                     @endif
                 </li>
 
+=======
+                                <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center"
+                                     style="width:40px; height:40px;">
+                                    {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
+                                </div>
+                            @endif
+
+                            <div>
+                                <div class="fw-semibold small">{{ auth()->user()->name }}</div>
+                                <small>
+                                    {{ $lastLogin ? 'Last login: '.\Carbon\Carbon::parse($lastLogin)->format('d M Y H:i') : 'Welcome 👋' }}
+                                </small>
+                            </div>
+                        </div>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button class="btn btn-outline-light btn-sm">Logout</button>
+                    </form>
+                </li>
+
+                <!-- 🔔 -->
+                <li class="nav-item notification-wrapper" id="notificationBell" style="display:none;">
+                    <span class="nav-link text-white">
+                        <span class="{{ $isUnread ? 'bell-animate' : '' }}">🔔</span>
+                    </span>
+                    @if($isUnread)
+                        <span class="notification-badge"></span>
+                    @endif
+                </li>
+
+>>>>>>> 8ee02d48b0ed6145be52f059aba7b7469bdcc4cb
             </ul>
         </div>
     </div>
@@ -182,4 +273,8 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
+<<<<<<< HEAD
 </html>
+=======
+</html>
+>>>>>>> 8ee02d48b0ed6145be52f059aba7b7469bdcc4cb
