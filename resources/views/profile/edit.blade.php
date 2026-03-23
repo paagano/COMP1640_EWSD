@@ -37,45 +37,23 @@
                     {{-- PROFILE IMAGE --}}
                     <div class="col-md-3 text-center mb-3">
 
-<<<<<<< HEAD
+                        @php
+                            $profilePhoto = $user->profile_photo;
+
+                            if ($profilePhoto) {
+                                $profilePhoto = (strpos($profilePhoto, 'http') === 0)
+                                    ? $profilePhoto
+                                    : asset('storage/' . $profilePhoto);
+                            }
+                        @endphp
+
                         <div class="mb-2">
-=======
-                    @if($user->profile_photo)
-
-                        {{-- =============================== --}}
-                        {{-- INSERTED BELOW LINE. Removed old one --}}
-                        {{-- =============================== --}}
-                        
-                            <img src="{{ $user->profile_photo }}"
-                            class="rounded-circle"
-                            width="120"
-                            height="120"
-                            style="object-fit: cover;">
-                    @else
-                        <img src="https://ui-avatars.com/api/?name={{ urlencode($user->name) }}"
-                            class="rounded-circle"
-                            width="120"
-                            height="120"
-                            style="object-fit: cover;">
-                    @endif
->>>>>>> 8ee02d48b0ed6145be52f059aba7b7469bdcc4cb
-
-                            @php
-                                $profilePhoto = $user->profile_photo;
-
-                                // If stored as local path (old system), convert to URL
-                                if ($profilePhoto && !str_contains($profilePhoto, 'http')) {
-                                    $profilePhoto = asset('storage/' . $profilePhoto);
-                                }
-                            @endphp
-
                             <img id="profilePreview"
                                  src="{{ $profilePhoto ?? 'https://ui-avatars.com/api/?name=' . urlencode($user->name) }}"
                                  class="rounded-circle shadow-sm"
                                  width="120"
                                  height="120"
                                  style="object-fit: cover; border: 2px solid #ddd;">
-
                         </div>
 
                         <input type="file"
@@ -227,9 +205,7 @@
                     <tbody>
                         @forelse($loginHistory ?? [] as $log)
                             <tr>
-                                <td>
-                                    {{ \Carbon\Carbon::parse($log->created_at)->format('d M Y, h:i A') }}
-                                </td>
+                                <td>{{ \Carbon\Carbon::parse($log->created_at)->format('d M Y, h:i A') }}</td>
                                 <td>{{ $log->ip_address }}</td>
                                 <td class="small">
                                     {{ $log->browser ?? 'N/A' }}
@@ -283,12 +259,9 @@
     @endunless
 
 </div>
-<<<<<<< HEAD
 
 
-{{-- =============================== --}}
 {{-- IMAGE PREVIEW SCRIPT --}}
-{{-- =============================== --}}
 <script>
 function previewImage(event) {
     const input = event.target;
@@ -307,6 +280,3 @@ function previewImage(event) {
 </script>
 
 </x-app-layout>
-=======
-</x-app-layout>
->>>>>>> 8ee02d48b0ed6145be52f059aba7b7469bdcc4cb

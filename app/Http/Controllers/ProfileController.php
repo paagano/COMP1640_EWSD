@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use App\Services\SupabaseStorage;
 
 class ProfileController extends Controller
@@ -15,7 +16,6 @@ class ProfileController extends Controller
     {
         $user = Auth::user();
 
-        // Fetch last 5 login records
         $loginHistory = DB::table('activity_logs')
             ->where('user_id', $user->id)
             ->where('page', 'login')
@@ -34,7 +34,6 @@ class ProfileController extends Controller
     {
         $user = Auth::user();
 
-        // Fetch last 5 login records
         $loginHistory = DB::table('activity_logs')
             ->where('user_id', $user->id)
             ->where('page', 'login')
@@ -64,31 +63,28 @@ class ProfileController extends Controller
             'email' => $request->email,
         ];
 
-<<<<<<< HEAD
         /**
-         * HANDLE PROFILE IMAGE UPLOAD
+         * HANDLE PROFILE IMAGE UPLOAD (LOCAL + SUPABASE)
          */
         if ($request->hasFile('profile_photo')) {
 
             $file = $request->file('profile_photo');
 
-            // Upload (auto-switches local vs Supabase)
+            // Upload using smart service
             $fileUrl = SupabaseStorage::upload($file, 'profile_photos');
 
             if ($fileUrl) {
 
                 /**
                  * OPTIONAL CLEANUP (LOCAL ONLY)
-                 * Only delete old file if:
-                 * - We are in LOCAL env
-                 * - Old file exists and is local (not Supabase URL)
+                 * Avoid deleting Supabase URLs
                  */
                 if (app()->environment('local') && $user->profile_photo) {
 
-                    $oldPath = str_replace(asset('storage/') , '', $user->profile_photo);
+                    $oldPath = str_replace(asset('storage/'), '', $user->profile_photo);
 
-                    if (\Storage::disk('public')->exists($oldPath)) {
-                        \Storage::disk('public')->delete($oldPath);
+                    if (Storage::disk('public')->exists($oldPath)) {
+                        Storage::disk('public')->delete($oldPath);
                     }
                 }
 
@@ -97,37 +93,7 @@ class ProfileController extends Controller
             } else {
                 return back()->with('error', 'Image upload failed. Please try again.');
             }
-=======
-        // Handle profile image upload
-        // if ($request->hasFile('profile_photo')) {
-
-        //     // delete old image
-        //     if ($user->profile_photo && \Storage::exists($user->profile_photo)) {
-        //         \Storage::delete($user->profile_photo);
-        //     }
-
-        //     $path = $request->file('profile_photo')->store('profile_photos', 'public');
-
-        //     $data['profile_photo'] = $path;
-        // }
-
-         // Handle profile image upload - Using Supabase
-        if ($request->hasFile('profile_photo')) {
-
-        // OPTIONAL: delete old image (only if you were using local storage before)
-        // You can skip this since Supabase URLs are external
-    
-        $file = $request->file('profile_photo');
-    
-        $fileUrl = SupabaseStorage::upload($file);
-    
-        if ($fileUrl) {
-            $data['profile_photo'] = $fileUrl;
-        } else {
-            return back()->with('error', 'Image upload failed.');
->>>>>>> 8ee02d48b0ed6145be52f059aba7b7469bdcc4cb
         }
-    }
 
         $user->update($data);
 

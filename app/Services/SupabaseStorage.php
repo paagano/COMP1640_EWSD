@@ -3,28 +3,28 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
-<<<<<<< HEAD
 use Illuminate\Support\Facades\Storage;
-=======
->>>>>>> 8ee02d48b0ed6145be52f059aba7b7469bdcc4cb
 use Illuminate\Support\Str;
 
 class SupabaseStorage
 {
-<<<<<<< HEAD
+    /**
+     * MAIN ENTRY POINT
+     * Automatically switches between local and Supabase
+     */
     public static function upload($file, $folder = '')
     {
-        // If LOCAL → use Laravel storage
+        // LOCAL ENV → use Laravel storage
         if (app()->environment('local')) {
             return self::uploadLocally($file, $folder);
         }
 
-        // Else → use Supabase
+        // CLOUD → use Supabase
         return self::uploadToSupabase($file, $folder);
     }
 
     /**
-     * LOCAL STORAGE (for dev)
+     * LOCAL STORAGE (for development)
      */
     protected static function uploadLocally($file, $folder)
     {
@@ -48,17 +48,11 @@ class SupabaseStorage
     protected static function uploadToSupabase($file, $folder)
     {
         try {
-            $filename = ($folder ? $folder . '/' : '') . Str::random(20) . '.' . $file->getClientOriginalExtension();
+            // Generate filename with optional folder
+            $filename = ($folder ? $folder . '/' : '') 
+                . Str::random(20) . '.' 
+                . $file->getClientOriginalExtension();
 
-=======
-    public static function upload($file)
-    {
-        try {
-            // Generate unique filename
-            $filename = Str::random(20) . '.' . $file->getClientOriginalExtension();
-
-            // Upload to Supabase (IMPORTANT: no /public/ here)
->>>>>>> 8ee02d48b0ed6145be52f059aba7b7469bdcc4cb
             $response = Http::withHeaders([
                 'apikey' => env('SUPABASE_KEY'),
                 'Authorization' => 'Bearer ' . env('SUPABASE_KEY'),
@@ -67,21 +61,19 @@ class SupabaseStorage
                 file_get_contents($file),
                 $file->getMimeType()
             )->put(
-                env('SUPABASE_URL') . '/storage/v1/object/' . env('SUPABASE_BUCKET') . '/' . $filename
+                env('SUPABASE_URL') . '/storage/v1/object/' 
+                . env('SUPABASE_BUCKET') . '/' 
+                . $filename
             );
 
-<<<<<<< HEAD
-=======
-            // If upload successful → return PUBLIC URL
->>>>>>> 8ee02d48b0ed6145be52f059aba7b7469bdcc4cb
+            // SUCCESS → return public URL
             if ($response->successful()) {
-                return env('SUPABASE_URL') . '/storage/v1/object/public/' . env('SUPABASE_BUCKET') . '/' . $filename;
+                return env('SUPABASE_URL') . '/storage/v1/object/public/' 
+                    . env('SUPABASE_BUCKET') . '/' 
+                    . $filename;
             }
 
-<<<<<<< HEAD
-=======
-            // Log error instead of breaking app
->>>>>>> 8ee02d48b0ed6145be52f059aba7b7469bdcc4cb
+            // Log failure
             \Log::error('Supabase upload failed', [
                 'status' => $response->status(),
                 'response' => $response->body()
@@ -95,8 +87,4 @@ class SupabaseStorage
 
         return null;
     }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 8ee02d48b0ed6145be52f059aba7b7469bdcc4cb

@@ -21,15 +21,10 @@
                 <div class="col-md-3 mb-3">
                 
                     <div class="h-100 d-flex align-items-center justify-content-center bg-light border rounded">
-<<<<<<< HEAD
 
                         @php
                             $photo = $user->profile_photo;
 
-                            // Handle:
-                            // 1. Supabase URL
-                            // 2. Local storage path
-                            // 3. Null
                             if ($photo) {
                                 $photoUrl = (strpos($photo, 'http') === 0)
                                     ? $photo
@@ -40,37 +35,18 @@
                         @endphp
 
                         @if($photoUrl)
-=======
-                
-                        @if($user->profile_photo)
-                
-                            @php
-                                $photo = $user->profile_photo;
-                
-                                // Detect if it's a full URL (Supabase) or local path
-                                $photoUrl = Str::startsWith($photo, ['http://', 'https://'])
-                                    ? $photo
-                                    : asset('storage/' . $photo);
-                            @endphp
-                
->>>>>>> 8ee02d48b0ed6145be52f059aba7b7469bdcc4cb
                             <img src="{{ $photoUrl }}"
                                  class="rounded-circle shadow-sm"
                                  width="120"
                                  height="120"
-<<<<<<< HEAD
                                  style="object-fit: cover; border: 2px solid #ddd;">
-=======
-                                 style="object-fit: cover;">
-                
->>>>>>> 8ee02d48b0ed6145be52f059aba7b7469bdcc4cb
                         @else
                             <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center shadow-sm"
                                  style="width:120px; height:120px; font-size:40px;">
                                 {{ strtoupper(substr($user->name, 0, 2)) }}
                             </div>
                         @endif
-                
+
                     </div>
                 
                 </div>
