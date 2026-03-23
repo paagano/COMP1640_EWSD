@@ -18,7 +18,7 @@ class SupabaseStorage
             file_get_contents($file),
             $file->getMimeType()
         )->put(
-            env('SUPABASE_URL') . '/storage/v1/object/' . env('SUPABASE_BUCKET') . '/' . $filename
+            env('SUPABASE_URL') . '/storage/v1/object/public/' . env('SUPABASE_BUCKET') . '/' . $filename
         );
 
         if ($response->successful()) {
