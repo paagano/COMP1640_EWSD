@@ -60,7 +60,7 @@ Welcome, {{ $user->name }}.
     </div>
 
     @if(auth()->user()->hasRole('Marketing Manager'))
-    <button class="btn btn-dark"
+    <button class="btn btn-primary"
             data-bs-toggle="modal"
             data-bs-target="#uploadMagazineModal">
         Upload Latest Magazine
@@ -86,7 +86,7 @@ Welcome, {{ $user->name }}.
                 <div class="modal-body">
 
                     <div class="mb-3">
-                        <label class="form-label">Select PDF</label>
+                        <label class="form-label">Select Magazine to Upload</label>
                         <input type="file" name="magazine" class="form-control" accept="application/pdf" required>
                         <small class="text-muted">Only PDF allowed</small>
                     </div>

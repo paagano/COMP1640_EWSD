@@ -94,7 +94,7 @@ class SupabaseStorage
     }
 
     /**
-     * SUPABASE UPLOAD (fixed path)
+     * SUPABASE UPLOAD (fixed path) - used for latest magazine
      */
     protected static function uploadToSupabaseAs($file, $path)
     {
@@ -106,9 +106,10 @@ class SupabaseStorage
             $response = Http::withHeaders([
                 'apikey' => $supabaseKey,
                 'Authorization' => 'Bearer ' . $supabaseKey,
+                'x-upsert' => 'true',
             ])->attach(
                 'file',
-                file_get_contents($file),
+                fopen($file->getRealPath(), 'r'),
                 basename($path)
             )->post(
                 $supabaseUrl . '/storage/v1/object/' . $bucket . '/' . $path
