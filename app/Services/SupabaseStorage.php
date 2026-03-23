@@ -106,11 +106,11 @@ class SupabaseStorage
             $response = Http::withHeaders([
                 'apikey' => $supabaseKey,
                 'Authorization' => 'Bearer ' . $supabaseKey,
-                'x-upsert' => 'true', // overwrite
-            ])->withBody(
+            ])->attach(
+                'file',
                 file_get_contents($file),
-                $file->getMimeType()
-            )->put(
+                basename($path)
+            )->post(
                 $supabaseUrl . '/storage/v1/object/' . $bucket . '/' . $path
             );
 
@@ -118,13 +118,13 @@ class SupabaseStorage
                 return $supabaseUrl . '/storage/v1/object/public/' . $bucket . '/' . $path;
             }
 
-            \Log::error('Supabase upload failed', [
+            \Log::error('Supabase uploadAs failed', [
                 'status' => $response->status(),
                 'response' => $response->body()
             ]);
 
         } catch (\Exception $e) {
-            \Log::error('Supabase upload exception', [
+            \Log::error('Supabase uploadAs exception', [
                 'error' => $e->getMessage()
             ]);
         }
