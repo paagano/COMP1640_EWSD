@@ -11,7 +11,6 @@ use App\Services\SupabaseStorage;
 
 class ProfileController extends Controller
 {
-    // Display the user's profile information.
     public function show()
     {
         $user = Auth::user();
@@ -29,7 +28,6 @@ class ProfileController extends Controller
         ]);
     }
 
-    // Show the form for editing the user's profile information.
     public function edit()
     {
         $user = Auth::user();
@@ -47,7 +45,6 @@ class ProfileController extends Controller
         ]);
     }
 
-    // Update the user's profile information.
     public function update(Request $request)
     {
         $user = Auth::user();
@@ -64,32 +61,31 @@ class ProfileController extends Controller
         ];
 
         /**
-         * HANDLE PROFILE IMAGE UPLOAD (LOCAL + SUPABASE)
+         * HANDLE PROFILE IMAGE UPLOAD (WITH CLEANUP)
          */
         if ($request->hasFile('profile_photo')) {
 
             $file = $request->file('profile_photo');
 
-            // Upload using smart service
+            // DELETE OLD FILE (SUPABASE OR LOCAL SAFE)
+            if ($user->profile_photo) {
+
+                // Try Supabase delete (safe no-op if local)
+                SupabaseStorage::delete($user->profile_photo);
+
+                // Also attempt local delete (safe fallback)
+                $oldPath = str_replace(asset('storage/'), '', $user->profile_photo);
+
+                if (Storage::disk('public')->exists($oldPath)) {
+                    Storage::disk('public')->delete($oldPath);
+                }
+            }
+
+            // Upload new file
             $fileUrl = SupabaseStorage::upload($file, 'profile_photos');
 
             if ($fileUrl) {
-
-                /**
-                 * OPTIONAL CLEANUP (LOCAL ONLY)
-                 * Avoid deleting Supabase URLs
-                 */
-                if (app()->environment('local') && $user->profile_photo) {
-
-                    $oldPath = str_replace(asset('storage/'), '', $user->profile_photo);
-
-                    if (Storage::disk('public')->exists($oldPath)) {
-                        Storage::disk('public')->delete($oldPath);
-                    }
-                }
-
                 $data['profile_photo'] = $fileUrl;
-
             } else {
                 return back()->with('error', 'Image upload failed. Please try again.');
             }
@@ -102,8 +98,7 @@ class ProfileController extends Controller
     }
 
     // --------------------------------------------------------------------------
-    // Update Password
-    // --------------------------------------------------------------------------
+
     public function updatePassword(Request $request)
     {
         $user = Auth::user();
@@ -127,8 +122,7 @@ class ProfileController extends Controller
     }
 
     // --------------------------------------------------------------------------
-    // Deactivate Account
-    // --------------------------------------------------------------------------
+
     public function deactivate(Request $request)
     {
         $user = Auth::user();
