@@ -115,9 +115,11 @@ class SupabaseStorage
                 $supabaseUrl . '/storage/v1/object/' . $bucket . '/' . $path
             );
 
-            if ($response->successful()) {
-                return $supabaseUrl . '/storage/v1/object/public/' . $bucket . '/' . $path;
-            }
+            // if ($response->successful()) {
+            //     return $supabaseUrl . '/storage/v1/object/public/' . $bucket . '/' . $path;
+            // }
+
+            dd($response->status(), $response->body()); // DEBUG
 
             \Log::error('Supabase uploadAs failed', [
                 'status' => $response->status(),
