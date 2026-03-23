@@ -34,9 +34,6 @@ class ContributionController extends Controller
         return view('student.contributions.show', compact('contribution'));
     }
 
-    /**
-     * DOWNLOAD (LOCAL + SUPABASE SAFE)
-     */
     public function download(Contribution $contribution)
     {
         $this->authorizeOwnership($contribution);
@@ -47,12 +44,10 @@ class ContributionController extends Controller
 
         $doc = $contribution->word_document_path;
 
-        // If Supabase → redirect
         if (strpos($doc, 'http') === 0) {
             return redirect()->away($doc);
         }
 
-        // Else local
         if (!Storage::disk('public')->exists($doc)) {
             abort(404, 'File does not exist.');
         }
@@ -94,7 +89,6 @@ class ContributionController extends Controller
             'agreed_terms' => 'required|accepted',
         ]);
 
-        // DOCUMENT UPLOAD (SMART STORAGE)
         $documentPath = SupabaseStorage::upload(
             $request->file('word_document'),
             'documents'
@@ -111,11 +105,10 @@ class ContributionController extends Controller
             'agreed_terms' => true,
         ]);
 
-        // IMAGES UPLOAD (SMART STORAGE)
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $index => $image) {
 
-                $path = SupabaseStorage::upload($image, 'contributions'); 
+                $path = SupabaseStorage::upload($image, 'contributions');
 
                 Image::create([
                     'contribution_id' => $contribution->id,
@@ -124,23 +117,6 @@ class ContributionController extends Controller
                     'order' => $index
                 ]);
             }
-        }
-
-        // EMAIL
-        try {
-            $coordinator = User::role('Marketing Coordinator')
-                ->where('faculty_id', Auth::user()->faculty_id)
-                ->first();
-
-            if ($coordinator && $coordinator->email) {
-                Mail::to($coordinator->email)
-                    ->send(new ContributionSubmitted($contribution));
-            }
-
-        } catch (\Exception $e) {
-            Log::error('Failed to send contribution email', [
-                'error' => $e->getMessage()
-            ]);
         }
 
         return redirect()
@@ -174,9 +150,8 @@ class ContributionController extends Controller
         // UPDATE DOCUMENT
         if ($request->hasFile('word_document')) {
 
-            // delete old (local only)
-            if (app()->environment('local') && $contribution->word_document_path) {
-                Storage::disk('public')->delete($contribution->word_document_path);
+            if ($contribution->word_document_path) {
+                SupabaseStorage::delete($contribution->word_document_path);
             }
 
             $contribution->word_document_path = SupabaseStorage::upload(
@@ -195,9 +170,11 @@ class ContributionController extends Controller
             foreach ($request->delete_images as $id) {
                 $image = Image::find($id);
                 if ($image) {
-                    if (app()->environment('local')) {
-                        Storage::disk('public')->delete($image->image_path);
+
+                    if ($image->image_path) {
+                        SupabaseStorage::delete($image->image_path);
                     }
+
                     $image->delete();
                 }
             }
@@ -210,8 +187,8 @@ class ContributionController extends Controller
                     $image = Image::find($id);
                     if ($image) {
 
-                        if (app()->environment('local')) {
-                            Storage::disk('public')->delete($image->image_path);
+                        if ($image->image_path) {
+                            SupabaseStorage::delete($image->image_path);
                         }
 
                         $image->update([
@@ -249,10 +226,16 @@ class ContributionController extends Controller
         $this->authorizeEditable($contribution);
 
         foreach ($contribution->images as $image) {
-            if (app()->environment('local')) {
-                Storage::disk('public')->delete($image->image_path);
+
+            if ($image->image_path) {
+                SupabaseStorage::delete($image->image_path);
             }
+
             $image->delete();
+        }
+
+        if ($contribution->word_document_path) {
+            SupabaseStorage::delete($contribution->word_document_path);
         }
 
         $contribution->delete();

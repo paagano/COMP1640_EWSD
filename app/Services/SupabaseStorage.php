@@ -87,4 +87,56 @@ class SupabaseStorage
 
         return null;
     }
+
+    // OPTIONAL DELETE METHOD
+    // Can be used to clean up old files if needed. Supabase doesn't auto-delete old files on update.
+        public static function delete($fileUrl)
+    {
+        try {
+            // Only delete if Supabase is enabled
+            if (!env('USE_SUPABASE', false)) {
+                return false;
+            }
+
+            // Ignore if not a valid Supabase URL
+            if (!$fileUrl || strpos($fileUrl, env('SUPABASE_URL')) !== 0) {
+                return false;
+            }
+
+            $supabaseUrl = env('SUPABASE_URL');
+            $supabaseKey = env('SUPABASE_KEY');
+            $bucket = env('SUPABASE_BUCKET');
+
+            // Extract file path after /public/{bucket}/
+            $path = str_replace(
+                $supabaseUrl . '/storage/v1/object/public/' . $bucket . '/',
+                '',
+                $fileUrl
+            );
+
+            $response = \Illuminate\Support\Facades\Http::withHeaders([
+                'apikey' => $supabaseKey,
+                'Authorization' => 'Bearer ' . $supabaseKey,
+            ])->delete(
+                $supabaseUrl . '/storage/v1/object/' . $bucket . '/' . $path
+            );
+
+            if (!$response->successful()) {
+                \Log::error('Supabase delete failed', [
+                    'file' => $fileUrl,
+                    'status' => $response->status(),
+                    'response' => $response->body()
+                ]);
+            }
+
+            return $response->successful();
+
+        } catch (\Exception $e) {
+            \Log::error('Supabase delete exception', [
+                'error' => $e->getMessage()
+            ]);
+        }
+
+        return false;
+    }
 }
