@@ -10,29 +10,36 @@ class SupabaseStorage
 {
     /**
      * MAIN ENTRY POINT
-     * Uses explicit flag instead of environment detection
      */
     public static function upload($file, $folder = '')
     {
-        // USE SUPABASE (controlled via .env)
         if (env('USE_SUPABASE', false)) {
             return self::uploadToSupabase($file, $folder);
         }
 
-        // DEFAULT → LOCAL STORAGE
         return self::uploadLocally($file, $folder);
     }
 
     /**
-     * LOCAL STORAGE (for development)
+     * UPLOAD WITH FIXED NAME (for latest magazine)
+     */
+    public static function uploadAs($file, $path)
+    {
+        if (env('USE_SUPABASE', false)) {
+            return self::uploadToSupabaseAs($file, $path);
+        }
+
+        return self::uploadLocallyAs($file, $path);
+    }
+
+    /**
+     * LOCAL UPLOAD (random name)
      */
     protected static function uploadLocally($file, $folder)
     {
         try {
             $path = $file->store($folder, 'public');
-
             return asset('storage/' . $path);
-
         } catch (\Exception $e) {
             \Log::error('Local upload failed', [
                 'error' => $e->getMessage()
@@ -43,44 +50,21 @@ class SupabaseStorage
     }
 
     /**
-     * SUPABASE STORAGE (for production)
+     * LOCAL UPLOAD (fixed name)
      */
-    protected static function uploadToSupabase($file, $folder)
+    protected static function uploadLocallyAs($file, $path)
     {
         try {
-            // Generate filename with optional folder
-            $filename = ($folder ? $folder . '/' : '') 
-                . Str::random(20) . '.' 
-                . $file->getClientOriginalExtension();
+            // Delete old file
+            Storage::disk('public')->delete($path);
 
-            $supabaseUrl = env('SUPABASE_URL');
-            $supabaseKey = env('SUPABASE_KEY');
-            $bucket = env('SUPABASE_BUCKET');
+            // Store new file
+            Storage::disk('public')->put($path, file_get_contents($file));
 
-            $response = Http::withHeaders([
-                'apikey' => $supabaseKey,
-                'Authorization' => 'Bearer ' . $supabaseKey,
-                'x-upsert' => 'true',
-            ])->withBody(
-                file_get_contents($file),
-                $file->getMimeType()
-            )->put(
-                $supabaseUrl . '/storage/v1/object/' . $bucket . '/' . $filename
-            );
-
-            // SUCCESS → return public URL
-            if ($response->successful()) {
-                return $supabaseUrl . '/storage/v1/object/public/' . $bucket . '/' . $filename;
-            }
-
-            // Log failure
-            \Log::error('Supabase upload failed', [
-                'status' => $response->status(),
-                'response' => $response->body()
-            ]);
+            return asset('storage/' . $path);
 
         } catch (\Exception $e) {
-            \Log::error('Supabase exception', [
+            \Log::error('Local uploadAs failed', [
                 'error' => $e->getMessage()
             ]);
         }
@@ -88,42 +72,107 @@ class SupabaseStorage
         return null;
     }
 
-    // OPTIONAL DELETE METHOD
-    // Can be used to clean up old files if needed. Supabase doesn't auto-delete old files on update.
-        public static function delete($fileUrl)
+    /**
+     * SUPABASE UPLOAD (random name)
+     */
+    protected static function uploadToSupabase($file, $folder)
     {
         try {
-            // Only delete if Supabase is enabled
-            if (!env('USE_SUPABASE', false)) {
-                return false;
-            }
+            $filename = ($folder ? $folder . '/' : '')
+                . Str::random(20) . '.'
+                . $file->getClientOriginalExtension();
 
-            // Ignore if not a valid Supabase URL
-            if (!$fileUrl || strpos($fileUrl, env('SUPABASE_URL')) !== 0) {
-                return false;
-            }
+            return self::uploadToSupabaseAs($file, $filename);
 
+        } catch (\Exception $e) {
+            \Log::error('Supabase upload exception', [
+                'error' => $e->getMessage()
+            ]);
+        }
+
+        return null;
+    }
+
+    /**
+     * SUPABASE UPLOAD (fixed path)
+     */
+    protected static function uploadToSupabaseAs($file, $path)
+    {
+        try {
             $supabaseUrl = env('SUPABASE_URL');
             $supabaseKey = env('SUPABASE_KEY');
             $bucket = env('SUPABASE_BUCKET');
 
-            // Extract file path after /public/{bucket}/
-            $path = str_replace(
-                $supabaseUrl . '/storage/v1/object/public/' . $bucket . '/',
-                '',
-                $fileUrl
+            $response = Http::withHeaders([
+                'apikey' => $supabaseKey,
+                'Authorization' => 'Bearer ' . $supabaseKey,
+                'x-upsert' => 'true', // overwrite
+            ])->withBody(
+                file_get_contents($file),
+                $file->getMimeType()
+            )->put(
+                $supabaseUrl . '/storage/v1/object/' . $bucket . '/' . $path
             );
 
-            $response = \Illuminate\Support\Facades\Http::withHeaders([
+            if ($response->successful()) {
+                return $supabaseUrl . '/storage/v1/object/public/' . $bucket . '/' . $path;
+            }
+
+            \Log::error('Supabase upload failed', [
+                'status' => $response->status(),
+                'response' => $response->body()
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Supabase upload exception', [
+                'error' => $e->getMessage()
+            ]);
+        }
+
+        return null;
+    }
+
+    /**
+     * DELETE FILE (works for both local + supabase)
+     */
+    public static function delete($pathOrUrl)
+    {
+        if (env('USE_SUPABASE', false)) {
+            return self::deleteFromSupabase($pathOrUrl);
+        }
+
+        return Storage::disk('public')->delete($pathOrUrl);
+    }
+
+    /**
+     * DELETE FROM SUPABASE
+     */
+    protected static function deleteFromSupabase($pathOrUrl)
+    {
+        try {
+            $supabaseUrl = env('SUPABASE_URL');
+            $supabaseKey = env('SUPABASE_KEY');
+            $bucket = env('SUPABASE_BUCKET');
+
+            // If full URL, extract path
+            if (strpos($pathOrUrl, $supabaseUrl) === 0) {
+                $pathOrUrl = str_replace(
+                    $supabaseUrl . '/storage/v1/object/public/' . $bucket . '/',
+                    '',
+                    $pathOrUrl
+                );
+            }
+
+            $response = Http::withHeaders([
                 'apikey' => $supabaseKey,
                 'Authorization' => 'Bearer ' . $supabaseKey,
             ])->delete(
-                $supabaseUrl . '/storage/v1/object/' . $bucket . '/' . $path
+                $supabaseUrl . '/storage/v1/object/' . $bucket . '/' . $pathOrUrl
             );
 
             if (!$response->successful()) {
                 \Log::error('Supabase delete failed', [
-                    'file' => $fileUrl,
+                    'path' => $pathOrUrl,
                     'status' => $response->status(),
                     'response' => $response->body()
                 ]);

@@ -139,6 +139,7 @@
                             <th>Title</th>
                             <th>Author</th>
                             <th>Published Date</th>
+                            <th style="width: 150px;">Action</th>
                         </tr>
                     </thead>
 
@@ -150,12 +151,19 @@
                                 <td>{{ $article->title }}</td>
                                 <td>{{ $article->student->name ?? '-' }}</td>
                                 <td>{{ $article->updated_at->format('d M Y') }}</td>
+
+                                <td>
+                                    <a href="{{ route('public.contributions.show', $article->id) }}"
+                                    class="btn btn-sm btn-outline-primary">
+                                        View Details
+                                    </a>
+                                </td>
                             </tr>
 
                         @empty
 
                             <tr>
-                                <td colspan="3" class="text-center py-3">
+                                <td colspan="4" class="text-center py-3">
                                     No published articles yet
                                 </td>
                             </tr>

@@ -24,6 +24,8 @@ use App\Http\Controllers\Student\DashboardController as StudentDashboard;
 use App\Http\Controllers\Student\ContributionController as StudentContributionController;
 
 use App\Http\Controllers\Guest\DashboardController as GuestDashboard;
+use App\Http\Controllers\PublicContributionController;
+use App\Http\Controllers\MagazineController;
 
 
 /*
@@ -377,7 +379,16 @@ Route::middleware(['auth'])->group(function () {
     [App\Http\Controllers\ContributionDownloadController::class, 'download'])
         ->name('contributions.download');
 
-});
+    // Public route to view contribution details (for PUBLISHED contributions ONLY)
+    Route::get('/articles/{id}', [PublicContributionController::class, 'show'])
+        ->name('public.contributions.show');
+
+    // This route allows the Marketing Manager to upload the magazine PDF directly from the dashboard.
+    Route::post('/manager/magazine/upload', [MagazineController::class, 'upload'])
+        ->name('manager.magazine.upload')
+        ->middleware(['auth','role:Marketing Manager']);
+
+});     
 
 
 require __DIR__.'/auth.php';

@@ -51,12 +51,56 @@ Welcome, {{ $user->name }}.
 
 {{-- ACADEMIC YEAR INFO --}}
 @if($academicYear)
-<div class="alert alert-info">
-<strong>Academic Year:</strong> {{ $academicYear->year_name }} <br>
-<strong>Final Closure Date:</strong>
-{{ \Carbon\Carbon::parse($academicYear->final_closure_date)->format('d M Y') }}
+<div class="alert alert-info d-flex justify-content-between align-items-center">
+
+    <div>
+        <strong>Academic Year:</strong> {{ $academicYear->year_name }} <br>
+        <strong>Final Closure Date:</strong>
+        {{ \Carbon\Carbon::parse($academicYear->final_closure_date)->format('d M Y') }}
+    </div>
+
+    @if(auth()->user()->hasRole('Marketing Manager'))
+    <button class="btn btn-dark"
+            data-bs-toggle="modal"
+            data-bs-target="#uploadMagazineModal">
+        Upload Latest Magazine
+    </button>
+    @endif
+
 </div>
 @endif
+
+<!-- UPLOAD MAGAZINE MODAL -->
+<div class="modal fade" id="uploadMagazineModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="POST" action="{{ route('manager.magazine.upload') }}" enctype="multipart/form-data">
+            @csrf
+
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Upload Latest Magazine</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    <div class="mb-3">
+                        <label class="form-label">Select PDF</label>
+                        <input type="file" name="magazine" class="form-control" accept="application/pdf" required>
+                        <small class="text-muted">Only PDF allowed</small>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-primary">Upload</button>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</div>
 
 
 
