@@ -21,10 +21,29 @@
             <hr>
 
             <h6>Word Document</h6>
+
+            @php
+                $doc = $contribution->word_document_path;
+
+                $docUrl = $doc && strpos($doc, 'http') === 0
+                    ? $doc
+                    : asset('storage/' . $doc);
+
+                $isLocal = str_contains($docUrl, '127.0.0.1') || str_contains($docUrl, 'localhost');
+            @endphp
+
+            {{-- DOWNLOAD --}}
             <a href="{{ route('contributions.download', $contribution->id) }}"
                class="btn btn-outline-primary btn-sm">
                 Download Document
             </a>
+
+            {{-- READ BUTTON --}}
+            <button class="btn btn-outline-success btn-sm ms-2"
+                    data-bs-toggle="modal"
+                    data-bs-target="#readDocumentModal">
+                Read Online
+            </button>
 
             @if($contribution->images->count())
                 <hr>
@@ -45,15 +64,15 @@
                             <div class="card shadow-sm p-2">
 
                                 <img src="{{ $imgUrl }}"
-                                    class="img-fluid rounded"
-                                    style="height:200px; object-fit:cover; cursor:pointer;"
-                                    title="{{ $image->alt_text }}"
-                                    data-bs-toggle="tooltip"
+                                     class="img-fluid rounded"
+                                     style="height:200px; object-fit:cover; cursor:pointer;"
+                                     title="{{ $image->alt_text }}"
+                                     data-bs-toggle="tooltip"
 
-                                    onclick="openImageModal(
+                                     onclick="openImageModal(
                                         '{{ $imgUrl }}',
                                         `{{ addslashes($image->alt_text) }}`
-                                    )">
+                                     )">
                             </div>
                         </div>
                     @endforeach
@@ -108,7 +127,46 @@
 </div>
 
 {{-- ========================= --}}
-{{-- MODAL --}}
+{{-- READ DOCUMENT MODAL --}}
+{{-- ========================= --}}
+<div class="modal fade" id="readDocumentModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Read Document</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body p-0">
+
+                @if($isLocal)
+                    <div class="p-4 text-center">
+                        <p class="text-muted">
+                            Preview not available on local environment.
+                        </p>
+
+                        <a href="{{ $docUrl }}" target="_blank" class="btn btn-primary">
+                            Download Document
+                        </a>
+                    </div>
+                @else
+                    <iframe
+                        src="https://view.officeapps.live.com/op/embed.aspx?src={{ urlencode($docUrl) }}"
+                        width="100%"
+                        height="600px"
+                        frameborder="0">
+                    </iframe>
+                @endif
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{{-- ========================= --}}
+{{-- IMAGE MODAL --}}
 {{-- ========================= --}}
 <div id="imageModal" class="image-modal">
 
