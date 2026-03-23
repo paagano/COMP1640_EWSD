@@ -97,7 +97,7 @@ class ContributionController extends Controller
         // DOCUMENT UPLOAD (SMART STORAGE)
         $documentPath = SupabaseStorage::upload(
             $request->file('word_document'),
-            'documents'
+            'word_documents'
         );
 
         $contribution = Contribution::create([
@@ -115,7 +115,7 @@ class ContributionController extends Controller
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $index => $image) {
 
-                $path = SupabaseStorage::upload($image, 'contributions');
+                $path = SupabaseStorage::upload($image, 'images'); 
 
                 Image::create([
                     'contribution_id' => $contribution->id,
