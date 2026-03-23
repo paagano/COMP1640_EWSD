@@ -13,7 +13,7 @@ class SupabaseStorage
             // Generate unique filename
             $filename = Str::random(20) . '.' . $file->getClientOriginalExtension();
 
-            // Upload to Supabase
+            // Upload to Supabase (IMPORTANT: no /public/ here)
             $response = Http::withHeaders([
                 'apikey' => env('SUPABASE_KEY'),
                 'Authorization' => 'Bearer ' . env('SUPABASE_KEY'),
@@ -21,23 +21,22 @@ class SupabaseStorage
                 file_get_contents($file),
                 $file->getMimeType()
             )->put(
-                env('SUPABASE_URL') . '/storage/v1/object/public/' . env('SUPABASE_BUCKET') . '/' . $filename
+                env('SUPABASE_URL') . '/storage/v1/object/' . env('SUPABASE_BUCKET') . '/' . $filename
             );
 
-            // Success
+            // If upload successful → return PUBLIC URL
             if ($response->successful()) {
                 return env('SUPABASE_URL') . '/storage/v1/object/public/' . env('SUPABASE_BUCKET') . '/' . $filename;
             }
 
-            // Debug response (VERY IMPORTANT for now)
-            dd([
+            // Log error instead of breaking app
+            \Log::error('Supabase upload failed', [
                 'status' => $response->status(),
                 'response' => $response->body()
             ]);
 
         } catch (\Exception $e) {
-            // Catch unexpected errors
-            dd([
+            \Log::error('Supabase exception', [
                 'error' => $e->getMessage()
             ]);
         }
