@@ -16,24 +16,35 @@
 
                 {{-- PROFILE PHOTO --}}
                 <div class="col-md-3 mb-3">
-
+                
                     <div class="h-100 d-flex align-items-center justify-content-center bg-light border rounded">
-
+                
                         @if($user->profile_photo)
-                            <img src="{{ asset('storage/' . $user->profile_photo) }}"
+                
+                            @php
+                                $photo = $user->profile_photo;
+                
+                                // Detect if it's a full URL (Supabase) or local path
+                                $photoUrl = Str::startsWith($photo, ['http://', 'https://'])
+                                    ? $photo
+                                    : asset('storage/' . $photo);
+                            @endphp
+                
+                            <img src="{{ $photoUrl }}"
                                  class="rounded-circle shadow-sm"
                                  width="120"
                                  height="120"
                                  style="object-fit: cover;">
+                
                         @else
                             <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center shadow-sm"
                                  style="width:120px; height:120px; font-size:40px;">
                                 {{ strtoupper(substr($user->name, 0, 2)) }}
                             </div>
                         @endif
-
+                
                     </div>
-
+                
                 </div>
 
                 {{-- PROFILE DETAILS --}}
