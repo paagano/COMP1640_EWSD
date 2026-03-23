@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use App\Services\SupabaseStorage;
 
 // The ProfileController class is responsible for handling user profile-related actions such as displaying the user's profile information, showing the form for editing the profile, and updating the profile information. 
 // It uses the Auth facade to retrieve the currently authenticated user and perform actions on their profile. 
@@ -68,17 +69,34 @@ class ProfileController extends Controller
         ];
 
         // Handle profile image upload
+        // if ($request->hasFile('profile_photo')) {
+
+        //     // delete old image
+        //     if ($user->profile_photo && \Storage::exists($user->profile_photo)) {
+        //         \Storage::delete($user->profile_photo);
+        //     }
+
+        //     $path = $request->file('profile_photo')->store('profile_photos', 'public');
+
+        //     $data['profile_photo'] = $path;
+        // }
+
+         // Handle profile image upload - Using Supabase
         if ($request->hasFile('profile_photo')) {
 
-            // delete old image
-            if ($user->profile_photo && \Storage::exists($user->profile_photo)) {
-                \Storage::delete($user->profile_photo);
-            }
-
-            $path = $request->file('profile_photo')->store('profile_photos', 'public');
-
-            $data['profile_photo'] = $path;
+        // OPTIONAL: delete old image (only if you were using local storage before)
+        // You can skip this since Supabase URLs are external
+    
+        $file = $request->file('profile_photo');
+    
+        $fileUrl = SupabaseStorage::upload($file);
+    
+        if ($fileUrl) {
+            $data['profile_photo'] = $fileUrl;
+        } else {
+            return back()->with('error', 'Image upload failed.');
         }
+    }
 
         $user->update($data);
 
