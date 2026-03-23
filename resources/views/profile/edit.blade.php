@@ -29,7 +29,8 @@
                 <div class="mb-2">
 
                     @if($user->profile_photo)
-                        <img src="{{ asset('storage/'.$user->profile_photo) }}"
+                        <!-- <img src="{{ asset('storage/'.$user->profile_photo) }}" -->
+                            <img src="{{ $user->profile_photo }}"
                             class="rounded-circle"
                             width="120"
                             height="120"
