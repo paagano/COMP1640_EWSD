@@ -9,20 +9,37 @@ class SupabaseStorage
 {
     public static function upload($file)
     {
-        $filename = Str::random(20) . '.' . $file->getClientOriginalExtension();
+        try {
+            // Generate unique filename
+            $filename = Str::random(20) . '.' . $file->getClientOriginalExtension();
 
-        $response = Http::withHeaders([
-            'apikey' => env('SUPABASE_KEY'),
-            'Authorization' => 'Bearer ' . env('SUPABASE_KEY'),
-        ])->withBody(
-            file_get_contents($file),
-            $file->getMimeType()
-        )->put(
-            env('SUPABASE_URL') . '/storage/v1/object/public/' . env('SUPABASE_BUCKET') . '/' . $filename
-        );
+            // Upload to Supabase
+            $response = Http::withHeaders([
+                'apikey' => env('SUPABASE_KEY'),
+                'Authorization' => 'Bearer ' . env('SUPABASE_KEY'),
+            ])->withBody(
+                file_get_contents($file),
+                $file->getMimeType()
+            )->put(
+                env('SUPABASE_URL') . '/storage/v1/object/public/' . env('SUPABASE_BUCKET') . '/' . $filename
+            );
 
-        if ($response->successful()) {
-            return env('SUPABASE_URL') . '/storage/v1/object/public/' . env('SUPABASE_BUCKET') . '/' . $filename;
+            // Success
+            if ($response->successful()) {
+                return env('SUPABASE_URL') . '/storage/v1/object/public/' . env('SUPABASE_BUCKET') . '/' . $filename;
+            }
+
+            // Debug response (VERY IMPORTANT for now)
+            dd([
+                'status' => $response->status(),
+                'response' => $response->body()
+            ]);
+
+        } catch (\Exception $e) {
+            // Catch unexpected errors
+            dd([
+                'error' => $e->getMessage()
+            ]);
         }
 
         return null;
