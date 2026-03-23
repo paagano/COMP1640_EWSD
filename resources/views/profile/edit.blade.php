@@ -3,11 +3,20 @@
 
     <h2 class="fw-bold mb-4">My Profile Settings</h2>
 
+    {{-- SUCCESS MESSAGE --}}
     @if(session('success'))
         <div class="alert alert-success">
             {{ session('success') }}
         </div>
     @endif
+
+    {{-- ERROR MESSAGE --}}
+    @if(session('error'))
+        <div class="alert alert-danger">
+            {{ session('error') }}
+        </div>
+    @endif
+
 
     {{-- =============================== --}}
     {{-- Profile Information --}}
@@ -16,85 +25,95 @@
         <div class="card-header bg-light fw-semibold">
             Profile Information
         </div>
+
         <div class="card-body">
 
-    <form method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data">
-        @csrf
-        @method('PUT')
+            <form method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data">
+                @csrf
+                @method('PUT')
 
-        <div class="row">
+                <div class="row">
 
-            {{-- Profile Picture --}}
-            <div class="col-md-3 text-center mb-3">
-                <div class="mb-2">
+                    {{-- PROFILE IMAGE --}}
+                    <div class="col-md-3 text-center mb-3">
 
-                    @if($user->profile_photo)
-                        <img src="{{ asset('storage/'.$user->profile_photo) }}"
-                            class="rounded-circle"
-                            width="120"
-                            height="120"
-                            style="object-fit: cover;">
-                    @else
-                        <img src="https://ui-avatars.com/api/?name={{ urlencode($user->name) }}"
-                            class="rounded-circle"
-                            width="120"
-                            height="120"
-                            style="object-fit: cover;">
-                    @endif
+                        <div class="mb-2">
 
+                            @php
+                                $profilePhoto = $user->profile_photo;
+
+                                // If stored as local path (old system), convert to URL
+                                if ($profilePhoto && !str_contains($profilePhoto, 'http')) {
+                                    $profilePhoto = asset('storage/' . $profilePhoto);
+                                }
+                            @endphp
+
+                            <img id="profilePreview"
+                                 src="{{ $profilePhoto ?? 'https://ui-avatars.com/api/?name=' . urlencode($user->name) }}"
+                                 class="rounded-circle shadow-sm"
+                                 width="120"
+                                 height="120"
+                                 style="object-fit: cover; border: 2px solid #ddd;">
+
+                        </div>
+
+                        <input type="file"
+                               name="profile_photo"
+                               class="form-control form-control-sm"
+                               accept="image/*"
+                               onchange="previewImage(event)">
+
+                        <small class="text-muted">
+                            JPG, PNG (Max: 2MB)
+                        </small>
+
+                        @error('profile_photo')
+                            <div class="text-danger small">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+
+                    {{-- BASIC INFO --}}
+                    <div class="col-md-9">
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Name</label>
+                            <input type="text"
+                                   name="name"
+                                   value="{{ old('name', $user->name) }}"
+                                   class="form-control @error('name') is-invalid @enderror">
+
+                            @error('name')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Email</label>
+                            <input type="email"
+                                   name="email"
+                                   value="{{ old('email', $user->email) }}"
+                                   class="form-control @error('email') is-invalid @enderror">
+
+                            @error('email')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            Update Profile
+                        </button>
+
+                    </div>
                 </div>
-
-                <input type="file"
-                    name="profile_photo"
-                    class="form-control form-control-sm">
-
-                {{-- validation error --}}
-                @error('profile_photo')
-                    <small class="text-danger">{{ $message }}</small>
-                @enderror
-            </div>
-
-            {{-- Basic Info --}}
-            <div class="col-md-9">
-
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Name</label>
-                    <input type="text"
-                        name="name"
-                        value="{{ old('name', $user->name) }}"
-                        class="form-control">
-                    
-                    @error('name')
-                        <small class="text-danger">{{ $message }}</small>
-                    @enderror
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Email</label>
-                    <input type="email"
-                        name="email"
-                        value="{{ old('email', $user->email) }}"
-                        class="form-control">
-
-                    @error('email')
-                        <small class="text-danger">{{ $message }}</small>
-                    @enderror
-                </div>
-
-                <button type="submit" class="btn btn-primary">
-                    Update Profile
-                </button>
-
-            </div>
-        </div>
-    </form>
+            </form>
 
         </div>
     </div>
 
 
     {{-- =============================== --}}
-    {{-- Change Password (AUTO-OPEN ON ERROR) --}}
+    {{-- Change Password --}}
     {{-- =============================== --}}
     <div class="card shadow-sm border-0 mb-4">
 
@@ -104,10 +123,7 @@
              data-bs-target="#changePasswordCollapse">
 
             <span>Change Password</span>
-
-            <span class="text-muted">
-                ⬇
-            </span>
+            <span class="text-muted">⬇</span>
         </div>
 
         <div id="changePasswordCollapse"
@@ -126,9 +142,7 @@
                                class="form-control @error('current_password') is-invalid @enderror">
 
                         @error('current_password')
-                            <div class="invalid-feedback">
-                                {{ $message }}
-                            </div>
+                            <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
 
@@ -139,9 +153,7 @@
                                class="form-control @error('password') is-invalid @enderror">
 
                         @error('password')
-                            <div class="invalid-feedback">
-                                {{ $message }}
-                            </div>
+                            <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
 
@@ -165,7 +177,7 @@
 
 
     {{-- =============================== --}}
-    {{-- Login Audit History (ROLE-BASED DEFAULT OPEN) --}}
+    {{-- Login History --}}
     {{-- =============================== --}}
     <div class="card shadow-sm border-0 mb-4">
 
@@ -175,13 +187,9 @@
              data-bs-target="#loginHistoryCollapse">
 
             <span>Login History (Last 5 Sessions)</span>
-
-            <span class="text-muted">
-                ⬇
-            </span>
+            <span class="text-muted">⬇</span>
         </div>
 
-        {{-- ADMIN = OPEN | OTHERS = CLOSED --}}
         <div id="loginHistoryCollapse"
              class="collapse {{ auth()->user()->hasRole('Admin') ? 'show' : '' }}">
 
@@ -198,18 +206,14 @@
                     <tbody>
                         @forelse($loginHistory ?? [] as $log)
                             <tr>
-
                                 <td>
                                     {{ \Carbon\Carbon::parse($log->created_at)->format('d M Y, h:i A') }}
                                 </td>
-
                                 <td>{{ $log->ip_address }}</td>
-
                                 <td class="small">
-                                    {{ $log->browser ?? 'N/A' }} 
+                                    {{ $log->browser ?? 'N/A' }}
                                     ({{ $log->platform ?? 'N/A' }})
                                 </td>
-
                             </tr>
                         @empty
                             <tr>
@@ -222,14 +226,13 @@
                 </table>
 
             </div>
-
         </div>
 
     </div>
 
 
     {{-- =============================== --}}
-    {{-- Deactivate Account --}}
+    {{-- Danger Zone --}}
     {{-- =============================== --}}
     @unless(auth()->user()->hasRole('Admin'))
     <div class="card shadow-sm border-danger mb-4">
@@ -259,4 +262,26 @@
     @endunless
 
 </div>
+
+
+{{-- =============================== --}}
+{{-- IMAGE PREVIEW SCRIPT --}}
+{{-- =============================== --}}
+<script>
+function previewImage(event) {
+    const input = event.target;
+    const preview = document.getElementById('profilePreview');
+
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+        }
+
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
+
 </x-app-layout>

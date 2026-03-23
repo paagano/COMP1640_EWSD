@@ -3,6 +3,7 @@
 
     <h2 class="fw-bold mb-4">My Profile</h2>
 
+    {{-- SUCCESS MESSAGE --}}
     @if(session('success'))
         <div class="alert alert-success">
             {{ session('success') }}
@@ -14,17 +15,35 @@
 
             <div class="row align-items-stretch">
 
+                {{-- =============================== --}}
                 {{-- PROFILE PHOTO --}}
+                {{-- =============================== --}}
                 <div class="col-md-3 mb-3">
 
                     <div class="h-100 d-flex align-items-center justify-content-center bg-light border rounded">
 
-                        @if($user->profile_photo)
-                            <img src="{{ asset('storage/' . $user->profile_photo) }}"
+                        @php
+                            $photo = $user->profile_photo;
+
+                            // Handle:
+                            // 1. Supabase URL
+                            // 2. Local storage path
+                            // 3. Null
+                            if ($photo) {
+                                $photoUrl = (strpos($photo, 'http') === 0)
+                                    ? $photo
+                                    : asset('storage/' . $photo);
+                            } else {
+                                $photoUrl = null;
+                            }
+                        @endphp
+
+                        @if($photoUrl)
+                            <img src="{{ $photoUrl }}"
                                  class="rounded-circle shadow-sm"
                                  width="120"
                                  height="120"
-                                 style="object-fit: cover;">
+                                 style="object-fit: cover; border: 2px solid #ddd;">
                         @else
                             <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center shadow-sm"
                                  style="width:120px; height:120px; font-size:40px;">
@@ -36,12 +55,17 @@
 
                 </div>
 
+
+                {{-- =============================== --}}
                 {{-- PROFILE DETAILS --}}
+                {{-- =============================== --}}
                 <div class="col-md-9">
 
                     <div class="table-responsive">
                         <table class="table table-bordered align-middle mb-4">
+
                             <tbody>
+
                                 <tr>
                                     <th style="width: 30%;" class="bg-light">Name</th>
                                     <td>{{ $user->name }}</td>
@@ -66,11 +90,12 @@
                                         }}
                                     </td>
                                 </tr>
+
                             </tbody>
+
                         </table>
                     </div>
 
-                    
                     <div class="text-end">
                         <a href="{{ route('profile.edit') }}" class="btn btn-primary">
                             Edit Profile
