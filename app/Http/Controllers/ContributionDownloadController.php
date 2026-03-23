@@ -13,9 +13,18 @@ class ContributionDownloadController extends Controller
         // Increment download count
         $contribution->increment('download_count');
 
-        // Return file download
-        return response()->download(
-            storage_path('app/public/' . $contribution->word_document_path)
-        );
+        $doc = $contribution->word_document_path;
+
+        // If it's already a URL (Supabase OR local URL)
+        if ($doc && strpos($doc, 'http') === 0) {
+            return redirect()->away($doc);
+        }
+
+        // Otherwise treat as local file path
+        if (!$doc || !Storage::disk('public')->exists($doc)) {
+            abort(404, 'File not found.');
+        }
+
+        return Storage::disk('public')->download($doc);
     }
 }

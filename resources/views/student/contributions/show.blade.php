@@ -87,19 +87,28 @@
 
                 <div class="row g-3 mb-4">
                     @foreach($contribution->images as $image)
+
+                        @php
+                            $img = $image->image_path;
+
+                            $imgUrl = $img && strpos($img, 'http') === 0
+                                ? $img
+                                : asset('storage/' . $img);
+                        @endphp
+
                         <div class="col-md-3">
                             <div class="card shadow-sm p-2">
 
-                                <img src="{{ asset('storage/'.$image->image_path) }}"
-                                     class="img-fluid rounded"
-                                     style="height:200px; object-fit:cover; cursor:pointer;"
-                                     title="{{ $image->alt_text }}"
-                                     data-bs-toggle="tooltip"
+                                <img src="{{ $imgUrl }}"
+                                    class="img-fluid rounded"
+                                    style="height:200px; object-fit:cover; cursor:pointer;"
+                                    title="{{ $image->alt_text }}"
+                                    data-bs-toggle="tooltip"
 
-                                     onclick="openImageModal(
-                                        '{{ asset('storage/'.$image->image_path) }}',
+                                    onclick="openImageModal(
+                                        '{{ $imgUrl }}',
                                         `{{ addslashes($image->alt_text) }}`
-                                     )">
+                                    )">
                             </div>
                         </div>
                     @endforeach

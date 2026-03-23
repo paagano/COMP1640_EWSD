@@ -13,6 +13,7 @@ use App\Models\AcademicYear;
 use App\Models\Image;
 use App\Models\User;
 use App\Mail\ContributionSubmitted;
+use App\Services\SupabaseStorage;
 use Carbon\Carbon;
 
 class ContributionController extends Controller
@@ -33,19 +34,30 @@ class ContributionController extends Controller
         return view('student.contributions.show', compact('contribution'));
     }
 
+    /**
+     * DOWNLOAD (LOCAL + SUPABASE SAFE)
+     */
     public function download(Contribution $contribution)
     {
         $this->authorizeOwnership($contribution);
 
         if (!$contribution->word_document_path) {
-            abort(404, 'Ooops, Document not found.');
+            abort(404, 'Document not found.');
         }
 
-        if (!Storage::disk('public')->exists($contribution->word_document_path)) {
-            abort(404, 'Ooops, File does not exist.');
+        $doc = $contribution->word_document_path;
+
+        // If Supabase → redirect
+        if (strpos($doc, 'http') === 0) {
+            return redirect()->away($doc);
         }
 
-        return Storage::disk('public')->download($contribution->word_document_path);
+        // Else local
+        if (!Storage::disk('public')->exists($doc)) {
+            abort(404, 'File does not exist.');
+        }
+
+        return Storage::disk('public')->download($doc);
     }
 
     public function create()
@@ -74,7 +86,7 @@ class ContributionController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'content_summary' => 'required|string',
-            'word_document' => 'required|mimes:doc,docx|max:5120',
+            'word_document' => 'required|mimes:doc,docx,pdf|max:10240',
             'images' => 'nullable|array|max:5',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:5120',
             'alt_texts' => 'required_with:images|array',
@@ -82,8 +94,11 @@ class ContributionController extends Controller
             'agreed_terms' => 'required|accepted',
         ]);
 
-        $documentPath = $request->file('word_document')
-            ->store('contributions/documents', 'public');
+        // DOCUMENT UPLOAD (SMART STORAGE)
+        $documentPath = SupabaseStorage::upload(
+            $request->file('word_document'),
+            'documents'
+        );
 
         $contribution = Contribution::create([
             'title' => $request->title,
@@ -96,11 +111,11 @@ class ContributionController extends Controller
             'agreed_terms' => true,
         ]);
 
-        // SAVE IMAGES
+        // IMAGES UPLOAD (SMART STORAGE)
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $index => $image) {
 
-                $path = $image->store('contributions/images', 'public');
+                $path = SupabaseStorage::upload($image, 'contributions');
 
                 Image::create([
                     'contribution_id' => $contribution->id,
@@ -111,7 +126,7 @@ class ContributionController extends Controller
             }
         }
 
-        // SEND EMAIL TO FACULTY COORDINATOR
+        // EMAIL
         try {
             $coordinator = User::role('Marketing Coordinator')
                 ->where('faculty_id', Auth::user()->faculty_id)
@@ -120,16 +135,6 @@ class ContributionController extends Controller
             if ($coordinator && $coordinator->email) {
                 Mail::to($coordinator->email)
                     ->send(new ContributionSubmitted($contribution));
-
-                Log::info('Contribution email sent to coordinator', [
-                    'coordinator_id' => $coordinator->id,
-                    'email' => $coordinator->email,
-                    'contribution_id' => $contribution->id
-                ]);
-            } else {
-                Log::warning('No coordinator found for faculty', [
-                    'faculty_id' => Auth::user()->faculty_id
-                ]);
             }
 
         } catch (\Exception $e) {
@@ -159,20 +164,25 @@ class ContributionController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'content_summary' => 'required|string',
-            'word_document' => 'nullable|mimes:doc,docx|max:5120',
+            'word_document' => 'nullable|mimes:doc,docx,pdf|max:10240',
             'images' => 'nullable|array|max:5',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:5120',
             'alt_texts' => 'required_with:images|array',
             'alt_texts.*' => 'required|string',
         ]);
 
+        // UPDATE DOCUMENT
         if ($request->hasFile('word_document')) {
-            if ($contribution->word_document_path) {
+
+            // delete old (local only)
+            if (app()->environment('local') && $contribution->word_document_path) {
                 Storage::disk('public')->delete($contribution->word_document_path);
             }
 
-            $contribution->word_document_path = $request->file('word_document')
-                ->store('contributions/documents', 'public');
+            $contribution->word_document_path = SupabaseStorage::upload(
+                $request->file('word_document'),
+                'documents'
+            );
         }
 
         $contribution->update([
@@ -180,27 +190,32 @@ class ContributionController extends Controller
             'content_summary' => $request->content_summary,
         ]);
 
+        // DELETE IMAGES
         if ($request->delete_images) {
             foreach ($request->delete_images as $id) {
                 $image = Image::find($id);
                 if ($image) {
-                    Storage::disk('public')->delete($image->image_path);
+                    if (app()->environment('local')) {
+                        Storage::disk('public')->delete($image->image_path);
+                    }
                     $image->delete();
                 }
             }
         }
 
+        // REPLACE IMAGES
         if ($request->hasFile('replace_images')) {
             foreach ($request->replace_images as $id => $file) {
                 if ($file) {
                     $image = Image::find($id);
                     if ($image) {
-                        Storage::disk('public')->delete($image->image_path);
 
-                        $path = $file->store('contributions/images', 'public');
+                        if (app()->environment('local')) {
+                            Storage::disk('public')->delete($image->image_path);
+                        }
 
                         $image->update([
-                            'image_path' => $path,
+                            'image_path' => SupabaseStorage::upload($file, 'contributions'),
                             'alt_text' => $request->replace_alt_text[$id] ?? $image->alt_text,
                         ]);
                     }
@@ -208,17 +223,11 @@ class ContributionController extends Controller
             }
         }
 
-        if ($request->image_order) {
-            $orderArray = explode(',', $request->image_order);
-            foreach ($orderArray as $order => $id) {
-                Image::where('id', $id)->update(['order' => $order]);
-            }
-        }
-
+        // NEW IMAGES
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $index => $image) {
 
-                $path = $image->store('contributions/images', 'public');
+                $path = SupabaseStorage::upload($image, 'contributions');
 
                 Image::create([
                     'contribution_id' => $contribution->id,
@@ -240,7 +249,9 @@ class ContributionController extends Controller
         $this->authorizeEditable($contribution);
 
         foreach ($contribution->images as $image) {
-            Storage::disk('public')->delete($image->image_path);
+            if (app()->environment('local')) {
+                Storage::disk('public')->delete($image->image_path);
+            }
             $image->delete();
         }
 

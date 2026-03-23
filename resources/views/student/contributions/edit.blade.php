@@ -47,12 +47,21 @@
 
                     <div id="sortableImages" class="row g-3 mb-4">
                         @foreach($contribution->images->sortBy('order') as $image)
+
+                            @php
+                                $img = $image->image_path;
+
+                                $imgUrl = $img && strpos($img, 'http') === 0
+                                    ? $img
+                                    : asset('storage/' . $img);
+                            @endphp
+
                             <div class="col-md-3 sortable-item" data-id="{{ $image->id }}">
                                 <div class="card shadow-sm p-2">
 
-                                    <img src="{{ asset('storage/'.$image->image_path) }}"
-                                         class="img-fluid rounded mb-2"
-                                         style="height:180px; object-fit:cover;">
+                                    <img src="{{ $imgUrl }}"
+                                        class="img-fluid rounded mb-2"
+                                        style="height:180px; object-fit:cover;">
 
                                     <small class="text-muted mb-2">
                                         {{ $image->alt_text }}
@@ -60,24 +69,24 @@
 
                                     {{-- Replace --}}
                                     <input type="file"
-                                           name="replace_images[{{ $image->id }}]"
-                                           class="form-control form-control-sm mb-2 replace-image-input"
-                                           data-id="{{ $image->id }}">
+                                        name="replace_images[{{ $image->id }}]"
+                                        class="form-control form-control-sm mb-2 replace-image-input"
+                                        data-id="{{ $image->id }}">
 
                                     {{-- Replace Description --}}
                                     <div class="mb-2 d-none"
-                                         id="replace-desc-{{ $image->id }}">
+                                        id="replace-desc-{{ $image->id }}">
                                         <textarea name="replace_alt_text[{{ $image->id }}]"
-                                                  class="form-control form-control-sm"
-                                                  placeholder="Describe new image..."></textarea>
+                                                class="form-control form-control-sm"
+                                                placeholder="Describe new image..."></textarea>
                                     </div>
 
                                     {{-- Delete --}}
                                     <div class="form-check">
                                         <input type="checkbox"
-                                               name="delete_images[]"
-                                               value="{{ $image->id }}"
-                                               class="form-check-input delete-checkbox">
+                                            name="delete_images[]"
+                                            value="{{ $image->id }}"
+                                            class="form-check-input delete-checkbox">
                                         <label class="form-check-label text-danger small">
                                             Remove
                                         </label>
