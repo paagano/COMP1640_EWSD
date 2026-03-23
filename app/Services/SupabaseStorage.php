@@ -17,6 +17,7 @@ class SupabaseStorage
             $response = Http::withHeaders([
                 'apikey' => env('SUPABASE_KEY'),
                 'Authorization' => 'Bearer ' . env('SUPABASE_KEY'),
+                'x-upsert' => 'true',
             ])->withBody(
                 file_get_contents($file),
                 $file->getMimeType()
