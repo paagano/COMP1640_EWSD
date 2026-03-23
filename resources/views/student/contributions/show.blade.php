@@ -6,12 +6,22 @@
     <div class="card shadow-sm border-0">
         <div class="card-body">
 
+            @php
+                $doc = $contribution->word_document_path;
+
+                $docUrl = $doc && strpos($doc, 'http') === 0
+                    ? $doc
+                    : asset('storage/' . $doc);
+
+                $isLocal = str_contains($docUrl, '127.0.0.1') || str_contains($docUrl, 'localhost');
+            @endphp
+
             {{-- ========================= --}}
             {{-- BASIC DETAILS --}}
             {{-- ========================= --}}
             <table class="table table-bordered align-middle mb-4">
                 <tr>
-                    <th style="width: 25%" class="bg-light">Title</th>
+                    <th class="bg-light" style="width:25%">Title</th>
                     <td>{{ $contribution->title }}</td>
                 </tr>
 
@@ -23,12 +33,11 @@
                                 {{ $contribution->content_summary }}
                             </div>
                         @else
-                            <span class="text-muted fst-italic">
-                                No content summary provided.
-                            </span>
+                            <span class="text-muted fst-italic">No content summary provided.</span>
                         @endif
                     </td>
                 </tr>
+
                 <tr>
                     <th class="bg-light">Student</th>
                     <td>{{ $contribution->student->name }}</td>
@@ -42,17 +51,12 @@
                 <tr>
                     <th class="bg-light">Status</th>
                     <td>
-                        @if($contribution->status === 'submitted')
-                            <span class="badge bg-secondary">Submitted</span>
-                        @elseif($contribution->status === 'commented')
-                            <span class="badge bg-warning text-dark">Reviewed</span>
-                        @elseif($contribution->status === 'selected')
-                            <span class="badge bg-success">Selected</span>
-                        @elseif($contribution->status === 'rejected')
-                            <span class="badge bg-danger">Rejected</span>
-                        @endif
+                        <span class="badge bg-secondary text-capitalize">
+                            {{ $contribution->status }}
+                        </span>
                     </td>
                 </tr>
+
                 <tr>
                     <th class="bg-light">Download Count</th>
                     <td>
@@ -61,6 +65,7 @@
                         </span>
                     </td>
                 </tr>
+
                 <tr>
                     <th class="bg-light">Document</th>
                     <td>
@@ -69,6 +74,12 @@
                            class="btn btn-outline-primary btn-sm">
                             Download Document
                         </a>
+
+                        <button class="btn btn-outline-success btn-sm ms-2"
+                                data-bs-toggle="modal"
+                                data-bs-target="#readDocumentModal">
+                            Read Online
+                        </button>
                     </td>
                 </tr>
 
@@ -80,7 +91,7 @@
 
 
             {{-- ========================= --}}
-            {{-- IMAGE SECTION --}}
+            {{-- IMAGES --}}
             {{-- ========================= --}}
             @if($contribution->images && $contribution->images->count() > 0)
                 <h5 class="fw-semibold mb-3">Attached Images</h5>
@@ -90,7 +101,6 @@
 
                         @php
                             $img = $image->image_path;
-
                             $imgUrl = $img && strpos($img, 'http') === 0
                                 ? $img
                                 : asset('storage/' . $img);
@@ -98,23 +108,19 @@
 
                         <div class="col-md-3">
                             <div class="card shadow-sm p-2">
-
                                 <img src="{{ $imgUrl }}"
-                                    class="img-fluid rounded"
-                                    style="height:200px; object-fit:cover; cursor:pointer;"
-                                    title="{{ $image->alt_text }}"
-                                    data-bs-toggle="tooltip"
-
-                                    onclick="openImageModal(
-                                        '{{ $imgUrl }}',
-                                        `{{ addslashes($image->alt_text) }}`
-                                    )">
+                                     class="img-fluid rounded"
+                                     style="height:200px; object-fit:cover; cursor:pointer;"
+                                     title="{{ $image->alt_text }}"
+                                     data-bs-toggle="tooltip"
+                                     onclick="openImageModal('{{ $imgUrl }}', '{{ e($image->alt_text) }}')">
                             </div>
                         </div>
                     @endforeach
                 </div>
             @endif
-            
+
+
             {{-- ========================= --}}
             {{-- COORDINATOR REVIEW --}}
             {{-- ========================= --}}
@@ -130,7 +136,7 @@
                     @else
                         <table class="table table-sm table-bordered align-middle mb-0">
                             <tr>
-                                <th style="width: 25%" class="bg-light">Reviewed By</th>
+                                <th style="width:25%" class="bg-light">Reviewed By</th>
                                 <td>{{ $contribution->reviewed_by ?? 'Marketing Coordinator' }}</td>
                             </tr>
 
@@ -152,9 +158,7 @@
                                             {{ $contribution->review_comment }}
                                         </div>
                                     @else
-                                        <span class="text-muted fst-italic">
-                                            No comment provided.
-                                        </span>
+                                        <span class="text-muted fst-italic">No comment provided.</span>
                                     @endif
                                 </td>
                             </tr>
@@ -211,7 +215,7 @@
                    class="btn btn-outline-secondary">
                     ← Back to Contributions List
                 </a>
-                
+
                 <a href="{{ route('student.dashboard') }}"
                    class="btn btn-outline-secondary">
                     ← Back to Dashboard
@@ -225,10 +229,44 @@
 
 
 {{-- ========================= --}}
-{{-- MODAL --}}
+{{-- READ DOCUMENT MODAL --}}
 {{-- ========================= --}}
-<div id="imageModal" class="image-modal">
+<div class="modal fade" id="readDocumentModal">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content shadow">
 
+            <div class="modal-header">
+                <h5 class="modal-title">📄 Read Document</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body p-0">
+                @if($isLocal)
+                    <div class="p-4 text-center">
+                        <p class="text-muted">
+                            Preview not available on local environment.
+                        </p>
+                        <a href="{{ $docUrl }}" target="_blank" class="btn btn-primary">
+                            Download Document
+                        </a>
+                    </div>
+                @else
+                    <iframe
+                        src="https://view.officeapps.live.com/op/embed.aspx?src={{ urlencode($docUrl) }}"
+                        width="100%"
+                        height="650px"
+                        style="border:none;">
+                    </iframe>
+                @endif
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+{{-- IMAGE MODAL --}}
+<div id="imageModal" class="image-modal">
     <div class="modal-box">
 
         <div class="modal-header">
@@ -246,32 +284,23 @@
         </div>
 
     </div>
-
 </div>
-
 
 <style>
 .image-modal {
     position: fixed;
     z-index: 1050;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
     background-color: rgba(0,0,0,0.7);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    visibility: hidden;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; visibility: hidden;
     transition: opacity 0.3s ease;
 }
-
 .image-modal.show {
     opacity: 1;
     visibility: visible;
 }
-
 .modal-box {
     background: #fff;
     width: 500px;
@@ -281,11 +310,9 @@
     transform: scale(0.9);
     transition: transform 0.3s ease;
 }
-
 .image-modal.show .modal-box {
     transform: scale(1);
 }
-
 .modal-header {
     display: flex;
     justify-content: space-between;
@@ -293,17 +320,14 @@
     padding: 15px 20px;
     border-bottom: 1px solid #ddd;
 }
-
 .modal-body {
     padding: 20px;
 }
-
 .modal-img {
     width: 100%;
     max-height: 300px;
     object-fit: contain;
 }
-
 .close-btn {
     font-size: 22px;
     cursor: pointer;
@@ -313,34 +337,19 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-    tooltipTriggerList.map(function (el) {
-        return new bootstrap.Tooltip(el)
+    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+        new bootstrap.Tooltip(el);
     });
 });
 
-function openImageModal(src, description) {
-    const modal = document.getElementById("imageModal");
-
+function openImageModal(src, desc) {
     document.getElementById("modalImage").src = src;
-    document.getElementById("modalDescription").innerText = description;
-
-    modal.classList.add("show");
-    document.body.style.overflow = "hidden";
+    document.getElementById("modalDescription").innerText = desc;
+    document.getElementById("imageModal").classList.add("show");
 }
 
 function closeImageModal() {
-    const modal = document.getElementById("imageModal");
-
-    modal.classList.remove("show");
-    document.body.style.overflow = "auto";
-}
-
-window.onclick = function(event) {
-    const modal = document.getElementById("imageModal");
-    if (event.target === modal) {
-        closeImageModal();
-    }
+    document.getElementById("imageModal").classList.remove("show");
 }
 </script>
 

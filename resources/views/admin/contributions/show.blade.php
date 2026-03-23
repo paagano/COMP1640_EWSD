@@ -16,6 +16,16 @@
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-body">
 
+            @php
+                $doc = $contribution->word_document_path;
+
+                $docUrl = $doc && strpos($doc, 'http') === 0
+                    ? $doc
+                    : asset('storage/' . $doc);
+
+                $isLocal = str_contains($docUrl, '127.0.0.1') || str_contains($docUrl, 'localhost');
+            @endphp
+
             <table class="table table-bordered align-middle mb-0">
                 <tr>
                     <th style="width: 25%" class="bg-light">Title</th>
@@ -91,6 +101,13 @@
                            class="btn btn-outline-primary btn-sm">
                             Download Document
                         </a>
+
+                        {{-- READ BUTTON --}}
+                        <button class="btn btn-outline-success btn-sm ms-2"
+                                data-bs-toggle="modal"
+                                data-bs-target="#readDocumentModal">
+                            Read Online
+                        </button>
                     </td>
                 </tr>
             </table>
@@ -100,7 +117,7 @@
 
 
     {{-- ========================= --}}
-    {{-- IMAGE SECTION (UPGRADED) --}}
+    {{-- IMAGE SECTION --}}
     {{-- ========================= --}}
     @if($contribution->images && $contribution->images->count() > 0)
         <div class="card shadow-sm border-0 mb-4">
@@ -190,57 +207,54 @@
         </div>
     </div>
 
-
-    {{-- ========================= --}}
-    {{-- SUBMISSION TIMELINE --}}
-    {{-- ========================= --}}
-    <div class="card shadow-sm border-0">
-        <div class="card-body">
-
-            <h5 class="fw-semibold mb-3">Submission Timeline</h5>
-
-            <ul class="list-group">
-
-                <li class="list-group-item">
-                    <strong>Submitted:</strong>
-                    {{ $contribution->created_at->format('d M Y, h:i A') }}
-                </li>
-
-                @if($contribution->reviewed_at)
-                    <li class="list-group-item">
-                        <strong>Reviewed:</strong>
-                        {{ \Carbon\Carbon::parse($contribution->reviewed_at)->format('d M Y, h:i A') }}
-                    </li>
-                @endif
-
-                @if($contribution->selected_at)
-                    <li class="list-group-item text-success">
-                        <strong>Selected for Publication:</strong>
-                        {{ \Carbon\Carbon::parse($contribution->selected_at)->format('d M Y') }}
-                    </li>
-                @endif
-
-                @if($contribution->status === 'rejected')
-                    <li class="list-group-item text-danger">
-                        <strong>Rejected</strong>
-                    </li>
-                @endif
-
-            </ul>
-
-        </div>
-    </div>
-
 </div>
 
 
 {{-- ========================= --}}
-{{-- MODAL (UPGRADED) --}}
+{{-- READ DOCUMENT MODAL --}}
+{{-- ========================= --}}
+<div class="modal fade" id="readDocumentModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">📄 Read Document</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body p-0">
+
+                @if($isLocal)
+                    <div class="p-4 text-center">
+                        <p class="text-muted">
+                            Preview not available on local environment.
+                        </p>
+
+                        <a href="{{ $docUrl }}" target="_blank" class="btn btn-primary">
+                            Download Document
+                        </a>
+                    </div>
+                @else
+                    <iframe
+                        src="https://view.officeapps.live.com/op/embed.aspx?src={{ urlencode($docUrl) }}"
+                        width="100%"
+                        height="600px"
+                        frameborder="0">
+                    </iframe>
+                @endif
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+{{-- ========================= --}}
+{{-- IMAGE MODAL --}}
 {{-- ========================= --}}
 <div id="imageModal" class="image-modal">
-
     <div class="modal-box">
-
         <div class="modal-header">
             <h5 class="modal-title">Image Preview</h5>
             <span class="close-btn" onclick="closeImageModal()">&times;</span>
@@ -248,17 +262,13 @@
 
         <div class="modal-body text-center">
             <img id="modalImage" class="modal-img">
-
             <div class="modal-desc mt-3">
                 <strong>Image Description:</strong>
                 <p id="modalDescription" class="mb-0"></p>
             </div>
         </div>
-
     </div>
-
 </div>
-
 
 <style>
 .image-modal {
@@ -321,27 +331,24 @@
 </style>
 
 
+
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-    tooltipTriggerList.map(function (el) {
-        return new bootstrap.Tooltip(el)
+    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+        new bootstrap.Tooltip(el);
     });
 });
 
 function openImageModal(src, description) {
     const modal = document.getElementById("imageModal");
-
     document.getElementById("modalImage").src = src;
     document.getElementById("modalDescription").innerText = description;
-
     modal.classList.add("show");
     document.body.style.overflow = "hidden";
 }
 
 function closeImageModal() {
     const modal = document.getElementById("imageModal");
-
     modal.classList.remove("show");
     document.body.style.overflow = "auto";
 }
