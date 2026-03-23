@@ -10,17 +10,17 @@ class SupabaseStorage
 {
     /**
      * MAIN ENTRY POINT
-     * Automatically switches between local and Supabase
+     * Uses explicit flag instead of environment detection
      */
     public static function upload($file, $folder = '')
     {
-        // LOCAL ENV → use Laravel storage
-        if (app()->environment('local')) {
-            return self::uploadLocally($file, $folder);
+        // USE SUPABASE (controlled via .env)
+        if (env('USE_SUPABASE', false)) {
+            return self::uploadToSupabase($file, $folder);
         }
 
-        // CLOUD → use Supabase
-        return self::uploadToSupabase($file, $folder);
+        // DEFAULT → LOCAL STORAGE
+        return self::uploadLocally($file, $folder);
     }
 
     /**
@@ -53,24 +53,24 @@ class SupabaseStorage
                 . Str::random(20) . '.' 
                 . $file->getClientOriginalExtension();
 
+            $supabaseUrl = env('SUPABASE_URL');
+            $supabaseKey = env('SUPABASE_KEY');
+            $bucket = env('SUPABASE_BUCKET');
+
             $response = Http::withHeaders([
-                'apikey' => env('SUPABASE_KEY'),
-                'Authorization' => 'Bearer ' . env('SUPABASE_KEY'),
+                'apikey' => $supabaseKey,
+                'Authorization' => 'Bearer ' . $supabaseKey,
                 'x-upsert' => 'true',
             ])->withBody(
                 file_get_contents($file),
                 $file->getMimeType()
             )->put(
-                env('SUPABASE_URL') . '/storage/v1/object/' 
-                . env('SUPABASE_BUCKET') . '/' 
-                . $filename
+                $supabaseUrl . '/storage/v1/object/' . $bucket . '/' . $filename
             );
 
             // SUCCESS → return public URL
             if ($response->successful()) {
-                return env('SUPABASE_URL') . '/storage/v1/object/public/' 
-                    . env('SUPABASE_BUCKET') . '/' 
-                    . $filename;
+                return $supabaseUrl . '/storage/v1/object/public/' . $bucket . '/' . $filename;
             }
 
             // Log failure
