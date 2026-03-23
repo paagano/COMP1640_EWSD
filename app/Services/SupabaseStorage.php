@@ -14,10 +14,11 @@ class SupabaseStorage
         $response = Http::withHeaders([
             'apikey' => env('SUPABASE_KEY'),
             'Authorization' => 'Bearer ' . env('SUPABASE_KEY'),
-            'Content-Type' => 'application/octet-stream',
-        ])->put(
-            env('SUPABASE_URL') . '/storage/v1/object/' . env('SUPABASE_BUCKET') . '/' . $filename,
-            file_get_contents($file)
+        ])->withBody(
+            file_get_contents($file),
+            $file->getMimeType()
+        )->put(
+            env('SUPABASE_URL') . '/storage/v1/object/' . env('SUPABASE_BUCKET') . '/' . $filename
         );
 
         if ($response->successful()) {
