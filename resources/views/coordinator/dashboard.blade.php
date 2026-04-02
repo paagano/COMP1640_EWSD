@@ -15,10 +15,6 @@
         @if($overdue > 0)
             <div class="alert alert-warning">
                 ⚠ {{ $overdue }} submission(s) pending review for more than 14 days.
-                <a href="{{ route('coordinator.contributions.index') }}"
-                   class="btn btn-primary">
-                    Go to Contributions
-                </a>
             </div>
         @endif
 
