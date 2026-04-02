@@ -10,8 +10,6 @@
             Welcome, {{ auth()->user()->name }}.
         </p>
 
-        <br>
-
         @if($overdue > 0)
             <div class="alert alert-warning">
                 ⚠ {{ $overdue }} submission(s) pending review for more than 14 days.
