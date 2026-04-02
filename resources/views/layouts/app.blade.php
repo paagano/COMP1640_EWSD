@@ -20,6 +20,11 @@
         .navbar .btn { height: 32px; display: flex; align-items: center; }
 
         .notification-wrapper { position: relative; cursor: pointer; display: inline-block; }
+
+        .notification-wrapper {
+            position: relative;
+            cursor: pointer;
+        }
         .notification-badge {
             position: absolute; top: 2px; right: 4px;
             width: 8px; height: 8px;
@@ -79,6 +84,10 @@
                 } else {
                     $photoUrl = null;
                 }
+                // Get the first role name for display
+                $role = $user->getRoleNames()->first();
+                // 🔔 Notification logic
+                $isUnread = !auth()->user()->notification_read_at;
             @endphp
 
             <ul class="navbar-nav ms-auto align-items-center gap-3">
@@ -129,11 +138,13 @@
                             @endif
 
                             <div>
-                                <div class="fw-semibold small">{{ $user->name }}</div>
+                                <div class="fw-semibold small">
+                                    {{ $user->name }} ({{ $role }}) 
+                                </div>
                                 <small>
                                     {{ $lastLogin
                                         ? 'Last login: '.\Carbon\Carbon::parse($lastLogin)->format('d M Y H:i')
-                                        : 'Welcome 👋'
+                                        : '🕒First Login: Welcome 👋'
                                     }}
                                 </small>
                             </div>
@@ -150,21 +161,65 @@
                     </form>
                 </li>
 
-                {{-- NOTIFICATION --}}
-                <li class="nav-item notification-wrapper" style="display:none;">
+                {{-- NOTIFICATION BELL --}}
+                {{-- <li class="nav-item notification-wrapper" style="display:none;"> --}}
+                <li class="nav-item notification-wrapper"
+                    id="notificationBell"
+                    data-bs-toggle="tooltip"
+                    title="Important Notification, Click to Read!">
+
                     <span class="nav-link text-white">
-                        <span class="{{ $isUnread ? 'bell-animate' : '' }}">🔔</span>
+                        <span id="bellIcon" class="{{ $isUnread ? 'bell-animate' : '' }}">🔔</span>
                     </span>
 
                     @if($isUnread)
-                        <span class="notification-badge"></span>
+                        <span class="notification-badge" id="notificationBadge"></span>
                     @endif
+
                 </li>
 
             </ul>
         </div>
     </div>
 </nav>
+
+<!-- 🔔 NOTIFICATION MODAL -->
+<div class="modal fade" id="notificationModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow">
+
+            <div class="modal-header">
+                <h5 class="modal-title">⚠️ Important Notice</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <p>
+                    This system currently uses <strong>stateless ephemeral cloud storage</strong>.
+                </p>
+
+                <p>
+                    Uploaded files (images, documents, profile photos) are <strong>not permanently stored</strong>.
+                </p>
+
+                <p class="text-danger fw-semibold">
+                    Files may become unavailable after application redeploys or system restarts.
+                </p>
+
+                <p>
+                    Please re-upload fresh files if any previously uploaded content is missing.
+                </p>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-primary" data-bs-dismiss="modal">
+                    Understood
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
 
 <main class="flex-fill">
     {{ $slot }}
@@ -175,6 +230,56 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const bell = document.getElementById('notificationBell');
+    const badge = document.getElementById('notificationBadge');
+    const bellIcon = document.getElementById('bellIcon');
+
+    const modal = new bootstrap.Modal(document.getElementById('notificationModal'));
+
+    // Enable tooltips
+    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+        new bootstrap.Tooltip(el);
+    });
+
+    if (bell) {
+        bell.addEventListener('click', function () {
+
+            // Open modal
+            modal.show();
+
+            // Stop animation
+            if (bellIcon) {
+                bellIcon.classList.remove('bell-animate');
+            }
+
+            // Remove badge
+            if (badge) {
+                badge.remove();
+            }
+
+            //MARK AS READ (DB)
+            fetch("{{ route('notification.read') }}", {
+                method: "POST",
+                headers: {
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                    "Accept": "application/json"
+                }
+            });
+
+            // Hide bell after 1 minute
+            setTimeout(() => {
+                bell.style.display = 'none';
+            }, 60000); // 1 min
+
+        });
+    }
+
+});
+</script>
 
 </body>
 </html>
