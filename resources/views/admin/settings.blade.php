@@ -123,7 +123,7 @@
                         <!-- Testers -->
                         <tr>
                             <td class="role-name">Testers</td>
-                            <td><div class="members-list">Abraham, Sadja, Philip</div></td>
+                            <td><div class="members-list">Abraham, Sadja, Ken, Philip</div></td>
                             <td class="contribution-text">Developed test plans, executed manual and automated tests, reported bugs, verified fixes, and ensured overall system quality and reliability.</td>
                         </tr>
                         <!-- Information Architects -->
