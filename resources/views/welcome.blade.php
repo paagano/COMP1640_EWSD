@@ -859,6 +859,7 @@
                 const hoursRemaining = distance / (1000 * 60 * 60);
 
                 // TESTING: SIMULATE URGENCY STATES
+                // const hoursRemaining = 10; // simulate <24 hours
                 // const hoursRemaining = 0.5; // simulate <1 hour
 
                 // URGENCY (<24 HOURS)
